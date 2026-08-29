@@ -67,6 +67,8 @@ app.use('/api/funds', authenticateToken, require('./routes/funds'));
 app.use('/api/apartments', authenticateToken, require('./routes/apartments'));
 app.use('/api/residents', authenticateToken, require('./routes/residents'));
 app.use('/api/taxes', authenticateToken, require('./routes/taxes'));
+app.use('/api/repairs', authenticateToken, require('./routes/repairs'));
+app.use('/api/portal', require('./routes/portal')); // khách thuê - tự xác thực riêng
 
 // Test kết nối Telegram (QL only): kiểm tra bot + gửi tin nhắn thử
 app.post('/api/telegram/test', authenticateToken, requireAdmin, async (req, res) => {
