@@ -162,11 +162,19 @@ router.post('/residents', asyncHandler(async (req, res) => {
 // ===== Căn trống (remarketing) =====
 router.get('/vacant', asyncHandler(async (req, res) => {
   const rows = await getAll(
-    `SELECT o.name, d.bedrooms, d.area, d.rent_amount AS "rentAmount", d.image_link AS "imageLink"
+    `SELECT o.name, d.bedrooms, d.area, d.rent_amount AS "rentAmount",
+            d.project_name AS "projectName", d.address,
+            d.image_link AS "imageLink", d.map_link AS "mapLink"
      FROM fund_objects o JOIN apartment_details d ON d.object_id = o.id
-     WHERE d.apt_status = 'Đang trống' ORDER BY d.rent_amount`
+     WHERE d.apt_status = 'Đang trống' ORDER BY d.rent_amount DESC`
   );
-  ok(res, rows.map((r) => ({ ...r, rentAmount: r.rentAmount != null ? Number(r.rentAmount) : null })));
+  const isUrl = (v) => typeof v === 'string' && v.startsWith('http');
+  ok(res, rows.map((r) => ({
+    ...r,
+    rentAmount: r.rentAmount != null ? Number(r.rentAmount) : null,
+    imageLink: isUrl(r.imageLink) ? r.imageLink : null,
+    mapLink: isUrl(r.mapLink) ? r.mapLink : null,
+  })));
 }));
 
 // ===== Đổi mật khẩu =====

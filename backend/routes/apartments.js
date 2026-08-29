@@ -34,6 +34,7 @@ const LIST_SELECT = `
          d.rental_form AS "rentalForm", d.building_fee AS "buildingFee",
          d.management_type AS "managementType", d.company_fee AS "companyFee",
          d.apt_status AS "aptStatus", d.address, d.notes,
+         d.project_name AS "projectName", d.map_link AS "mapLink",
          (d.rent_amount - d.owner_rent) AS "grossMargin",
          (d.contract_end IS NOT NULL AND d.contract_end < CURRENT_DATE) AS "contractExpired",
          (d.contract_end IS NOT NULL AND d.contract_end >= CURRENT_DATE
@@ -143,6 +144,7 @@ router.put('/:objectId', requireRole('QL', 'VP'), asyncHandler(async (req, res) 
     rentalForm: 'rental_form', buildingFee: 'building_fee',
     managementType: 'management_type', companyFee: 'company_fee',
     aptStatus: 'apt_status', address: 'address', notes: 'notes',
+    projectName: 'project_name', mapLink: 'map_link',
   };
 
   const cols = [];
