@@ -173,7 +173,7 @@ export default function AdvanceDetailPage() {
             )}
 
             {/* Employee & Amount Info */}
-            <div className="grid grid-cols-2 gap-4 py-6 border-t border-b border-gray-200 my-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-6 border-t border-b border-gray-200 my-6">
               <div>
                 <div className="flex items-center gap-2 text-gray-600 mb-2">
                   <User size={16} />
@@ -194,7 +194,7 @@ export default function AdvanceDetailPage() {
 
             {/* Remaining Balance */}
             <div className="py-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-2 text-gray-600">
                   <TrendingDown size={16} />
                   <span>Còn Lại</span>

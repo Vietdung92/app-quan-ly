@@ -203,7 +203,7 @@ export default function TaskEditPage() {
             required
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormSelect
               label="Độ Ưu Tiên"
               name="priority"
@@ -223,7 +223,7 @@ export default function TaskEditPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormSelect
               label="Người Thực Hiện"
               name="assignedTo"

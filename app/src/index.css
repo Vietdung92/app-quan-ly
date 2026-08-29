@@ -113,6 +113,89 @@ body {
   @apply block text-sm font-medium text-gray-700 mb-1;
 }
 
+/* =====================================================
+   TỐI ƯU CHO ĐIỆN THOẠI
+   ===================================================== */
+
+/* Chữ trong ô nhập tối thiểu 16px — iPhone sẽ KHÔNG tự phóng to màn hình khi gõ */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+@media (min-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Tiêu đề trang gọn lại, không chiếm nửa màn hình */
+  h1 {
+    font-size: 1.35rem !important;
+    line-height: 1.35 !important;
+  }
+  h2 {
+    font-size: 1.05rem !important;
+  }
+  h3 {
+    font-size: 0.95rem !important;
+  }
+
+  /* Nút và ô nhập đủ cao cho ngón tay bấm (chuẩn 44px của Apple) */
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger,
+  .btn-success,
+  button[type='submit'],
+  .input-field,
+  .select-field {
+    min-height: 44px;
+  }
+
+  /* Bảng: chữ và khoảng cách gọn để thấy được nhiều cột hơn */
+  table th {
+    padding: 8px 8px !important;
+    font-size: 10.5px !important;
+    white-space: nowrap;
+  }
+  table td {
+    padding: 10px 8px !important;
+    font-size: 13px !important;
+  }
+
+  /* Khối trắng bớt lề để nội dung rộng hơn */
+  .p-6 {
+    padding: 1rem !important;
+  }
+
+  /* Số liệu to trong thẻ thống kê vừa với màn hình hẹp */
+  .text-4xl {
+    font-size: 1.6rem !important;
+  }
+  .text-3xl {
+    font-size: 1.35rem !important;
+  }
+  .text-2xl {
+    font-size: 1.2rem !important;
+  }
+
+  /* Khoảng cách giữa các khối sát lại */
+  .space-y-6 > * + * {
+    margin-top: 0.9rem !important;
+  }
+  .gap-6 {
+    gap: 0.85rem !important;
+  }
+
+  /* Chừa chỗ cho thanh điều hướng đáy màn hình */
+  main {
+    padding-bottom: 84px !important;
+  }
+}
+
 /* Loading skeleton */
 .skeleton {
   @apply bg-gray-200 rounded animate-pulse;

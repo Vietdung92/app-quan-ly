@@ -155,7 +155,7 @@ export default function LeaveRequestPage() {
           />
 
           {/* Date Range */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormInput
               label="Từ Ngày"
               name="startDate"

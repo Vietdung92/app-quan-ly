@@ -192,7 +192,7 @@ export default function ApartmentDetailPage() {
                 <FormInput label="Mã Nước" name="waterCode" value={form.waterCode}
                   onChange={handleChange} disabled={disabled} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormSelect label="Trạng Thái" name="aptStatus" value={form.aptStatus}
                   onChange={handleChange} disabled={disabled}
                   options={[
@@ -217,25 +217,25 @@ export default function ApartmentDetailPage() {
               <h2 className="text-lg font-semibold text-gray-900 pb-3 border-b border-gray-200 flex items-center gap-2">
                 <User size={18} className="text-orange-600" /> Hợp Đồng Với Chủ Nhà
               </h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormInput label="Tên Chủ Nhà" name="ownerName" value={form.ownerName}
                   onChange={handleChange} disabled={disabled} />
                 <FormInput label="SĐT Chủ Nhà" name="ownerPhone" value={form.ownerPhone}
                   onChange={handleChange} disabled={disabled} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormInput label="Passport / Giấy Tờ" name="ownerPassport" value={form.ownerPassport}
                   onChange={handleChange} disabled={disabled} />
                 <FormInput label="Tài Khoản Ngân Hàng" name="ownerBank" value={form.ownerBank}
                   onChange={handleChange} disabled={disabled} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormInput label="Tiền Trả Chủ / Tháng (đ)" name="ownerRent" type="number"
                   value={form.ownerRent} onChange={handleChange} disabled={disabled} />
                 <FormInput label="Cọc Cho Chủ (đ)" name="ownerDeposit" type="number"
                   value={form.ownerDeposit} onChange={handleChange} disabled={disabled} />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <FormInput label="HĐ Từ" name="ownerContractStart" type="date"
                   value={form.ownerContractStart} onChange={handleChange} disabled={disabled} />
                 <FormInput label="HĐ Đến" name="ownerContractEnd" type="date"
@@ -250,13 +250,13 @@ export default function ApartmentDetailPage() {
               <h2 className="text-lg font-semibold text-gray-900 pb-3 border-b border-gray-200 flex items-center gap-2">
                 <User size={18} className="text-green-600" /> Hợp Đồng Với Khách Thuê
               </h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormInput label="Tên Khách Thuê" name="tenantName" value={form.tenantName}
                   onChange={handleChange} disabled={disabled} />
                 <FormInput label="SĐT Khách" name="tenantPhone" value={form.tenantPhone}
                   onChange={handleChange} disabled={disabled} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormInput label="Giá Thuê Khách / Tháng (đ)" name="rentAmount" type="number"
                   value={form.rentAmount} onChange={handleChange} disabled={disabled} />
                 <FormInput label="Cọc Của Khách (đ)" name="deposit" type="number"
@@ -272,7 +272,7 @@ export default function ApartmentDetailPage() {
                 <FormInput label="Ghi Chú Thu" name="paymentNote" value={form.paymentNote}
                   onChange={handleChange} disabled={disabled} placeholder="VD: 1-5 (trễ)" />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <FormSelect label="Hình Thức Thuê" name="rentalForm" value={form.rentalForm}
                   onChange={handleChange} disabled={disabled}
                   options={[
@@ -292,7 +292,7 @@ export default function ApartmentDetailPage() {
               <h2 className="text-lg font-semibold text-gray-900 pb-3 border-b border-gray-200">
                 Liên Kết & Ghi Chú
               </h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormInput label="Link Ảnh Căn" name="imageLink" value={form.imageLink}
                   onChange={handleChange} disabled={disabled} />
                 <FormInput label="Link Zalo Nhóm" name="zaloLink" value={form.zaloLink}

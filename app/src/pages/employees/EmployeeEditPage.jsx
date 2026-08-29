@@ -156,7 +156,7 @@ export default function EmployeeEditPage() {
             required
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormInput
               label="Email"
               name="email"
@@ -181,7 +181,7 @@ export default function EmployeeEditPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormSelect
               label="Vai Trò"
               name="role"
@@ -203,7 +203,7 @@ export default function EmployeeEditPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormInput
               label="Phòng Ban"
               name="department"

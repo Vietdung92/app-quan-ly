@@ -122,7 +122,7 @@ export default function ProfilePage() {
             {/* Work Information */}
             <div className="pt-4 border-t border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông Tin Công Việc</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3">
                   <Briefcase className="text-gray-400" size={18} />
                   <div>

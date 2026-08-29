@@ -14,6 +14,7 @@ import {
   RefreshCw,
   ArrowDownCircle,
   ArrowUpCircle,
+  Globe,
 } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
@@ -139,6 +140,13 @@ export default function ApartmentsPage() {
               Tạo Kỳ Tháng
             </Button>
           )}
+          <Link
+            to="/residents"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50"
+          >
+            <Globe size={16} className="text-blue-600" />
+            Tạm Trú
+          </Link>
         </div>
       </div>
 

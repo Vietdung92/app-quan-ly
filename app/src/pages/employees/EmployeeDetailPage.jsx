@@ -150,7 +150,7 @@ export default function EmployeeDetailPage() {
             {/* Work Info */}
             <div className="space-y-4 py-6 border-b border-gray-200">
               <h3 className="font-semibold text-gray-900">Thông Tin Công Việc</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <div className="flex items-center gap-2 text-gray-600 mb-2">
                     <Briefcase size={16} />

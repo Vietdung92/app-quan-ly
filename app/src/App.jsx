@@ -70,6 +70,10 @@ import FundReportPage from './pages/funds/FundReportPage';
 // Pages - Apartments (Quản Lý Căn Hộ)
 import ApartmentsPage from './pages/apartments/ApartmentsPage';
 import ApartmentDetailPage from './pages/apartments/ApartmentDetailPage';
+import ResidentsPage from './pages/residents/ResidentsPage';
+import ResidentFormPage from './pages/residents/ResidentFormPage';
+import TaxesPage from './pages/taxes/TaxesPage';
+import TaxFormPage from './pages/taxes/TaxFormPage';
 
 // Pages - Notifications
 import NotificationsPage from './pages/NotificationsPage';
@@ -347,6 +351,58 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ApartmentDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Residents - Tạm Trú Khách Nước Ngoài */}
+          <Route
+            path="/residents"
+            element={
+              <ProtectedRoute>
+                <ResidentsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/residents/new"
+            element={
+              <ProtectedRoute requiredRole={['QL', 'VP']}>
+                <ResidentFormPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/residents/:id/edit"
+            element={
+              <ProtectedRoute requiredRole={['QL', 'VP']}>
+                <ResidentFormPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Taxes - Thuế Hộ Chủ Nhà */}
+          <Route
+            path="/taxes"
+            element={
+              <ProtectedRoute requiredRole={['QL', 'VP']}>
+                <TaxesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/taxes/new"
+            element={
+              <ProtectedRoute requiredRole={['QL', 'VP']}>
+                <TaxFormPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/taxes/:id/edit"
+            element={
+              <ProtectedRoute requiredRole={['QL', 'VP']}>
+                <TaxFormPage />
               </ProtectedRoute>
             }
           />

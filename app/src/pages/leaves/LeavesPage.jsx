@@ -152,7 +152,7 @@ export default function LeavesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Đơn Nghỉ Phép</h1>
           <p className="text-gray-600 mt-1">Quản lý đơn nghỉ phép của nhân viên</p>

@@ -11,6 +11,12 @@ const apartmentService = {
     return response.data;
   },
 
+  // Tất cả căn hộ (kể cả chưa có hồ sơ) — dùng cho dropdown chọn căn
+  getAllRaw: async () => {
+    const response = await api.get('/apartments', { params: { all: 1 } });
+    return response.data;
+  },
+
   getById: async (objectId) => {
     const response = await api.get(`/apartments/${objectId}`);
     return response.data;

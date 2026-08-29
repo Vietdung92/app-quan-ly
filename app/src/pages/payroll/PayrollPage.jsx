@@ -151,7 +151,7 @@ export default function PayrollPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Bảng Lương</h1>
           <p className="text-gray-600 mt-1">Quản lý bảng lương nhân viên</p>

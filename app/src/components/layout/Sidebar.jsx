@@ -24,21 +24,25 @@ import {
   LogOut,
   Menu,
   X,
+  Globe,
+  Receipt,
 } from 'lucide-react';
 
 const MENU_ITEMS = [
-  { path: '/', label: 'Dashboard', icon: BarChart3 },
+  { path: '/', label: 'Tổng Quan', icon: BarChart3 },
   { path: '/funds', label: 'Thu Chi Quỹ', icon: Wallet },
   { path: '/apartments', label: 'Căn Hộ', icon: Building2 },
-  { path: '/projects', label: 'Projects', icon: FolderOpen },
-  { path: '/expenses', label: 'Expenses', icon: DollarSign },
-  { path: '/tasks', label: 'Tasks', icon: CheckSquare },
-  { path: '/attendance', label: 'Attendance', icon: Clock, roles: ['QL', 'VP'] },
-  { path: '/employees', label: 'Employees', icon: Users, roles: ['QL', 'VP'] },
-  { path: '/leaves', label: 'Leaves', icon: Calendar },
-  { path: '/advances', label: 'Advances', icon: TrendingUp },
-  { path: '/payroll', label: 'Payroll', icon: FileText },
-  { path: '/notifications', label: 'Notifications', icon: Bell },
+  { path: '/residents', label: 'Tạm Trú', icon: Globe },
+  { path: '/taxes', label: 'Thuế Hộ', icon: Receipt, roles: ['QL', 'VP'] },
+  { path: '/projects', label: 'Dự Án', icon: FolderOpen },
+  { path: '/expenses', label: 'Chi Phí', icon: DollarSign },
+  { path: '/tasks', label: 'Công Việc', icon: CheckSquare },
+  { path: '/attendance', label: 'Điểm Danh', icon: Clock, roles: ['QL', 'VP'] },
+  { path: '/employees', label: 'Nhân Viên', icon: Users, roles: ['QL', 'VP'] },
+  { path: '/leaves', label: 'Nghỉ Phép', icon: Calendar },
+  { path: '/advances', label: 'Ứng Lương', icon: TrendingUp },
+  { path: '/payroll', label: 'Bảng Lương', icon: FileText },
+  { path: '/notifications', label: 'Thông Báo', icon: Bell },
 ];
 
 export default function Sidebar({ open, onToggle }) {
@@ -99,7 +103,7 @@ export default function Sidebar({ open, onToggle }) {
                         : 'text-gray-300 hover:bg-gray-800'
                     }
                   `}
-                  onClick={() => !open && onToggle()}
+                  onClick={() => { if (open && window.innerWidth < 1024) onToggle(); }}
                 >
                   <Icon size={20} />
                   <span>{item.label}</span>

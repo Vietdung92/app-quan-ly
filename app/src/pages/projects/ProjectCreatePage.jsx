@@ -121,7 +121,7 @@ export default function ProjectCreatePage() {
           />
 
           {/* Budget & Status */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormInput
               label="Ngân Sách (Triệu đ)"
               name="budget"
@@ -145,7 +145,7 @@ export default function ProjectCreatePage() {
           </div>
 
           {/* Dates */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormInput
               label="Ngày Bắt Đầu"
               name="startDate"

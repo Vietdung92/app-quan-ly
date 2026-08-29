@@ -172,7 +172,7 @@ export default function TaskDetailPage() {
             </div>
 
             {/* Status and Priority */}
-            <div className="grid grid-cols-2 gap-4 py-6 border-t border-b border-gray-200 my-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-6 border-t border-b border-gray-200 my-6">
               <div>
                 <div className="flex items-center gap-2 text-gray-600 mb-2">
                   <Flag size={16} />

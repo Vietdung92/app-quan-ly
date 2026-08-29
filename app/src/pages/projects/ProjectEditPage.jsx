@@ -158,7 +158,7 @@ export default function ProjectEditPage() {
             required
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormInput
               label="Ngân Sách (Triệu đ)"
               name="budget"
@@ -181,7 +181,7 @@ export default function ProjectEditPage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormInput
               label="Ngày Bắt Đầu"
               name="startDate"

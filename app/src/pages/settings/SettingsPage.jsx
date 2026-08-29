@@ -65,7 +65,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <p className="font-medium text-gray-900">Thông báo qua Email</p>
                 <p className="text-sm text-gray-600">Nhận thông báo qua email khi có sự kiện mới</p>
@@ -84,7 +84,7 @@ export default function SettingsPage() {
               </button>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <p className="font-medium text-gray-900">Thông báo Push</p>
                 <p className="text-sm text-gray-600">Nhận thông báo trên trình duyệt</p>
@@ -103,7 +103,7 @@ export default function SettingsPage() {
               </button>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <p className="font-medium text-gray-900">Báo cáo hàng tuần</p>
                 <p className="text-sm text-gray-600">Nhận báo cáo hoạt động hàng tuần</p>
@@ -132,7 +132,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <p className="font-medium text-gray-900">Xác thực hai yếu tố (2FA)</p>
                 <p className="text-sm text-gray-600">Tăng cường bảo mật cho tài khoản của bạn</p>
@@ -161,7 +161,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <p className="font-medium text-gray-900">Hồ sơ công khai</p>
                 <p className="text-sm text-gray-600">Cho phép người khác xem hồ sơ của bạn</p>
@@ -190,7 +190,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
               <div>
                 <p className="font-medium text-gray-900">Xuất dữ liệu cá nhân</p>
                 <p className="text-sm text-gray-600">Tải xuống tất cả dữ liệu cá nhân của bạn</p>

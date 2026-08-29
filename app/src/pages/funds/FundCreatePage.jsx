@@ -131,7 +131,7 @@ export default function FundCreatePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormInput
               label="Số Tiền (đ)"
               name="amount"
@@ -166,7 +166,7 @@ export default function FundCreatePage() {
             required
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormSelect
               label="Đối Tượng (căn hộ/dự án)"
               name="objectId"
@@ -192,7 +192,7 @@ export default function FundCreatePage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormSelect
               label="Người Chi/Nộp"
               name="person"
