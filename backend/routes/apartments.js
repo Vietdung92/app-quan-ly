@@ -129,6 +129,19 @@ router.put('/:objectId', requireRole('QL', 'VP'), asyncHandler(async (req, res) 
   );
   if (!obj) throw notFound('Không tìm thấy căn hộ');
 
+  // Đổi tên (mã căn) — nằm ở fund_objects, không phải apartment_details
+  if ('name' in req.body) {
+    const newName = String(req.body.name || '').trim();
+    if (!newName) throw badRequest('Tên căn không được để trống');
+    const dup = await getOne(
+      `SELECT o.id FROM fund_objects o JOIN fund_groups g ON g.id = o.group_id
+       WHERE g.name = '${APARTMENT_GROUP}' AND o.name = $1 AND o.id != $2`,
+      [newName, req.params.objectId]
+    );
+    if (dup) throw badRequest(`Tên căn "${newName}" đã tồn tại`);
+    await getOne(`UPDATE fund_objects SET name = $1 WHERE id = $2 RETURNING id`, [newName, req.params.objectId]);
+  }
+
   // Map field API (camelCase) → cột DB
   const FIELD_MAP = {
     bedrooms: 'bedrooms', area: 'area', electricCode: 'electric_code', waterCode: 'water_code',
@@ -155,8 +168,9 @@ router.put('/:objectId', requireRole('QL', 'VP'), asyncHandler(async (req, res) 
       vals.push(req.body[apiKey] === '' ? null : req.body[apiKey]);
     }
   }
-  if (cols.length === 0) throw badRequest('Không có trường nào để cập nhật');
+  if (cols.length === 0 && !('name' in req.body)) throw badRequest('Không có trường nào để cập nhật');
 
+  if (cols.length > 0) {
   const placeholders = cols.map((_, i) => `$${i + 2}`);
   const updates = cols.map((c) => `${c} = EXCLUDED.${c}`);
   await getOne(
@@ -166,9 +180,66 @@ router.put('/:objectId', requireRole('QL', 'VP'), asyncHandler(async (req, res) 
      RETURNING object_id`,
     [req.params.objectId, ...vals]
   );
+  }
 
   const apartment = await getOne(`${LIST_SELECT} WHERE o.id = $1`, [req.params.objectId]);
   ok(res, numerify(apartment));
+}));
+
+// POST /api/apartments — thêm căn hộ mới (QL, VP)
+router.post('/', requireRole('QL', 'VP'), asyncHandler(async (req, res) => {
+  const name = String(req.body.name || '').trim();
+  if (!name) throw badRequest('Vui lòng nhập mã căn (VD: A-12.05)');
+
+  const group = await getOne(`SELECT id FROM fund_groups WHERE name = '${APARTMENT_GROUP}'`);
+  if (!group) throw badRequest('Chưa có nhóm QLCH - Căn hộ trong Quỹ');
+
+  const dup = await getOne(
+    `SELECT id FROM fund_objects WHERE group_id = $1 AND name = $2`,
+    [group.id, name]
+  );
+  if (dup) throw badRequest(`Căn "${name}" đã tồn tại trong danh sách`);
+
+  const objectId = await transaction(async (client) => {
+    const r = await client.query(
+      `INSERT INTO fund_objects (group_id, name, status) VALUES ($1, $2, 'Đang hoạt động') RETURNING id`,
+      [group.id, name]
+    );
+    await client.query(
+      `INSERT INTO apartment_details (object_id, apt_status) VALUES ($1, 'Đang trống')
+       ON CONFLICT (object_id) DO NOTHING`,
+      [r.rows[0].id]
+    );
+    return r.rows[0].id;
+  });
+
+  const apartment = await getOne(`${LIST_SELECT} WHERE o.id = $1`, [objectId]);
+  created(res, numerify(apartment));
+}));
+
+// DELETE /api/apartments/:objectId — xóa căn hộ (QL, VP)
+// Chặn xóa nếu căn đã có giao dịch trong Quỹ (mất lịch sử lãi lỗ)
+router.delete('/:objectId', requireRole('QL', 'VP'), asyncHandler(async (req, res) => {
+  const obj = await getOne(
+    `SELECT o.id, o.name FROM fund_objects o JOIN fund_groups g ON g.id = o.group_id
+     WHERE o.id = $1 AND g.name = '${APARTMENT_GROUP}'`,
+    [req.params.objectId]
+  );
+  if (!obj) throw notFound('Không tìm thấy căn hộ');
+
+  const tx = await getOne(
+    `SELECT COUNT(*) AS n FROM fund_transactions WHERE object_id = $1`,
+    [req.params.objectId]
+  );
+  if (Number(tx.n) > 0) {
+    throw badRequest(
+      `Căn ${obj.name} đã có ${tx.n} giao dịch trong Quỹ — xóa sẽ mất lịch sử lãi lỗ. ` +
+      `Nếu ngưng quản lý căn này, hãy đổi Tình Trạng thành "Ngưng quản lý" thay vì xóa.`
+    );
+  }
+
+  await getOne(`DELETE FROM fund_objects WHERE id = $1 RETURNING id`, [req.params.objectId]);
+  ok(res, { id: obj.id, message: `Đã xóa căn ${obj.name}` });
 }));
 
 // POST /api/apartments/generate-rents { month } (QL, VP)

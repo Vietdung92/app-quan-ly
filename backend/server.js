@@ -70,6 +70,10 @@ app.use('/api/taxes', authenticateToken, require('./routes/taxes'));
 app.use('/api/repairs', authenticateToken, require('./routes/repairs'));
 app.use('/api/portal', require('./routes/portal')); // khách thuê - tự xác thực riêng
 
+// Ảnh công việc đã upload (đường dẫn /api/uploads đi qua nginx proxy)
+const path2 = require('path');
+app.use('/api/uploads', require('express').static(process.env.UPLOAD_DIR || path2.join(__dirname, 'uploads')));
+
 // Test kết nối Telegram (QL only): kiểm tra bot + gửi tin nhắn thử
 app.post('/api/telegram/test', authenticateToken, requireAdmin, async (req, res) => {
   if (!telegramService.isEnabled()) {

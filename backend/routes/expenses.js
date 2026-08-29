@@ -27,8 +27,14 @@ const SELECT = `
 router.get('/', asyncHandler(async (req, res) => {
   const { status } = req.query;
   const params = [];
-  let where = '';
-  if (status) { params.push(status); where = `WHERE x.status = $1`; }
+  const conditions = [];
+  if (status) { params.push(status); conditions.push(`x.status = $${params.length}`); }
+  // Nhân viên thường chỉ thấy chi phí do chính mình tạo
+  if (!['QL', 'VP'].includes(req.user.role)) {
+    params.push(req.user.userId);
+    conditions.push(`x.created_by = $${params.length}`);
+  }
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
   const rows = await getAll(`${SELECT} ${where} ORDER BY x.id DESC`, params);
   ok(res, numerify(rows));
 }));

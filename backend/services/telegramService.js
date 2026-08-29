@@ -145,4 +145,30 @@ const templates = {
     ),
 };
 
-module.exports = { isEnabled, sendMessage, testConnection, ...templates };
+/** Gửi ảnh kèm chú thích. buffer: Buffer ảnh. Không bao giờ throw. */
+async function sendPhoto(buffer, filename, caption) {
+  if (!isEnabled()) return { sent: false, reason: 'not_configured' };
+  try {
+    const url = `${API_BASE}/bot${process.env.TELEGRAM_BOT_TOKEN}/sendPhoto`;
+    const form = new FormData();
+    form.append('chat_id', process.env.TELEGRAM_CHAT_ID);
+    form.append('caption', String(caption || '').slice(0, 1000));
+    form.append('photo', new Blob([buffer]), filename || 'photo.jpg');
+    const res = await fetch(url, {
+      method: 'POST',
+      body: form,
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      console.error('[Telegram] sendPhoto failed:', res.status, body.slice(0, 200));
+      return { sent: false, reason: `http_${res.status}` };
+    }
+    return { sent: true };
+  } catch (err) {
+    console.error('[Telegram] sendPhoto error:', err.message);
+    return { sent: false, reason: err.message };
+  }
+}
+
+module.exports = { isEnabled, sendMessage, testConnection, ...templates, sendPhoto };

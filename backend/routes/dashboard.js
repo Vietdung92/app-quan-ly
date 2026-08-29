@@ -5,7 +5,7 @@
 
 const router = require('express').Router();
 const { getAll, getOne } = require('../config/database');
-const { ok } = require('../utils/respond');
+const { ok, numerify } = require('../utils/respond');
 const { asyncHandler } = require('../middleware/errorHandler');
 
 async function buildStats() {
@@ -136,6 +136,56 @@ router.get('/employees', asyncHandler(async (req, res) => {
 // GET /api/dashboard/summary — alias của stats
 router.get('/summary', asyncHandler(async (req, res) => {
   ok(res, await buildStats());
+}));
+
+// GET /api/dashboard/my — tổng quan CÁ NHÂN (dành cho dashboard Kỹ thuật)
+router.get('/my', asyncHandler(async (req, res) => {
+  const empId = req.user.employeeId;
+  const monthStart = new Date().toISOString().slice(0, 7) + '-01';
+
+  const tasks = await getOne(`
+    SELECT COUNT(*) FILTER (WHERE status = 'completed') AS "done",
+           COUNT(*) FILTER (WHERE status != 'completed') AS "pending",
+           COUNT(*) FILTER (WHERE status != 'completed' AND due_date < CURRENT_DATE) AS "overdue"
+    FROM tasks WHERE assigned_to = $1`, [empId]);
+
+  const taskList = await getAll(`
+    SELECT id, title, status, priority, due_date AS "dueDate",
+           (status != 'completed' AND due_date < CURRENT_DATE) AS "isOverdue"
+    FROM tasks WHERE assigned_to = $1 AND status != 'completed'
+    ORDER BY due_date ASC NULLS LAST LIMIT 8`, [empId]);
+
+  const expenses = await getOne(`
+    SELECT COALESCE(SUM(amount), 0) AS "total",
+           COALESCE(SUM(amount) FILTER (WHERE status = 'approved'), 0) AS "approved",
+           COALESCE(SUM(amount) FILTER (WHERE status = 'pending'), 0) AS "pending",
+           COUNT(*) AS "count"
+    FROM expenses WHERE created_by = $1 AND date >= $2::date`, [req.user.userId, monthStart]);
+
+  const advance = await getOne(`
+    SELECT COALESCE(SUM(remaining_balance), 0) AS "remaining"
+    FROM advance_salary WHERE employee_id = $1 AND status = 'approved'`, [empId]).catch(() => ({ remaining: 0 }));
+
+  const leaves = await getOne(`
+    SELECT COUNT(*) FILTER (WHERE status = 'pending') AS "pending",
+           COUNT(*) FILTER (WHERE status = 'approved') AS "approved"
+    FROM leave_requests WHERE employee_id = $1`, [empId]);
+
+  const attendance = await getOne(`
+    SELECT check_in AS "checkIn", check_out AS "checkOut"
+    FROM attendance WHERE employee_id = $1 AND date = CURRENT_DATE`, [empId]);
+
+  ok(res, {
+    tasks: { done: Number(tasks.done), pending: Number(tasks.pending), overdue: Number(tasks.overdue) },
+    taskList: numerify(taskList),
+    expenses: {
+      total: Number(expenses.total), approved: Number(expenses.approved),
+      pending: Number(expenses.pending), count: Number(expenses.count),
+    },
+    advanceRemaining: Number(advance?.remaining || 0),
+    leaves: { pending: Number(leaves.pending), approved: Number(leaves.approved) },
+    attendanceToday: attendance || null,
+  });
 }));
 
 module.exports = router;

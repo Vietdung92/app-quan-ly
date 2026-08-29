@@ -30,6 +30,9 @@ const SELECT = `
 
 // GET /api/advances/balance/:employeeId — hạn mức còn có thể vay
 router.get('/balance/:employeeId', asyncHandler(async (req, res) => {
+  if (!['QL', 'VP'].includes(req.user.role) && Number(req.params.employeeId) !== req.user.employeeId) {
+    return res.status(403).json({ success: false, error: 'Bạn chỉ xem được thông tin ứng lương của mình' });
+  }
   const employee = await getOne(`SELECT salary FROM employees WHERE id = $1`, [req.params.employeeId]);
   if (!employee) throw notFound('Không tìm thấy nhân viên');
 
@@ -97,6 +100,9 @@ router.post('/request', asyncHandler(async (req, res) => {
 router.get('/:id', asyncHandler(async (req, res) => {
   const row = await getOne(`${SELECT} WHERE a.id = $1`, [req.params.id]);
   if (!row) throw notFound('Không tìm thấy đơn vay lương');
+  if (!['QL', 'VP'].includes(req.user.role) && row.employeeId !== req.user.employeeId) {
+    return res.status(403).json({ success: false, error: 'Bạn chỉ xem được đơn của mình' });
+  }
   if (req.user.role === 'KT' && row.employeeId !== req.user.employeeId) {
     return res.status(403).json({ success: false, error: 'Không có quyền xem đơn của người khác' });
   }
