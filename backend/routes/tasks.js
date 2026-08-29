@@ -23,12 +23,15 @@ const SELECT = `
 
 // GET /api/tasks?priority=&assignedTo=&status=
 router.get('/', asyncHandler(async (req, res) => {
-  const { priority, assignedTo, status } = req.query;
+  const { priority, assignedTo, status, projectId, from, to } = req.query;
   const conditions = [];
   const params = [];
   if (priority) { params.push(priority); conditions.push(`t.priority = $${params.length}`); }
   if (assignedTo) { params.push(assignedTo); conditions.push(`t.assigned_to = $${params.length}`); }
   if (status) { params.push(status); conditions.push(`t.status = $${params.length}`); }
+  if (projectId) { params.push(projectId); conditions.push(`t.project_id = $${params.length}`); }
+  if (from) { params.push(from); conditions.push(`COALESCE(t.due_date, t.created_at::date) >= $${params.length}::date`); }
+  if (to) { params.push(to); conditions.push(`COALESCE(t.due_date, t.created_at::date) <= $${params.length}::date`); }
   // KT chỉ thấy việc của mình
   if (req.user.role === 'KT') {
     params.push(req.user.employeeId);

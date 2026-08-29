@@ -68,6 +68,7 @@ app.use('/api/apartments', authenticateToken, require('./routes/apartments'));
 app.use('/api/residents', authenticateToken, require('./routes/residents'));
 app.use('/api/taxes', authenticateToken, require('./routes/taxes'));
 app.use('/api/repairs', authenticateToken, require('./routes/repairs'));
+app.use('/api/push', authenticateToken, require('./routes/push'));
 app.use('/api/portal', require('./routes/portal')); // khách thuê - tự xác thực riêng
 
 // Ảnh công việc đã upload (đường dẫn /api/uploads đi qua nginx proxy)

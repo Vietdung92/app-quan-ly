@@ -12,7 +12,7 @@ const { requireRole } = require('../middleware/auth');
 const telegram = require('../services/telegramService');
 const { notifyManagers, notifyEmployee, getEmployeeName } = require('../utils/notify');
 
-const MAX_ADVANCE_PERCENT = 50; // % lương tối đa được ứng (config table)
+const MAX_ADVANCE_PERCENT = 80; // % lương tối đa được ứng (config table)
 
 const SELECT = `
   SELECT a.id, a.employee_id AS "employeeId", e.full_name AS "employeeName",
@@ -79,7 +79,8 @@ router.post('/request', asyncHandler(async (req, res) => {
   const maxAdvance = Math.floor((Number(employee.salary) * MAX_ADVANCE_PERCENT) / 100);
   const available = maxAdvance - Number(outstanding.total);
   if (Number(amount) > available) {
-    throw badRequest(`Số tiền vượt hạn mức. Tối đa có thể vay: ${available.toLocaleString('vi-VN')} đ`);
+    // Không lộ mức lương hay con số hạn mức lên màn hình (yêu cầu anh Dũng)
+    throw badRequest('Số tiền vượt hạn mức ứng lương cho phép. Vui lòng giảm số tiền hoặc liên hệ Quản lý.');
   }
 
   const row = await getOne(
