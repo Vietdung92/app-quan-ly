@@ -12,6 +12,7 @@
 set -e  # Dừng ngay khi có lỗi
 
 DOMAIN=$1
+REPO_DIR=$(pwd)
 APP_DIR=/var/www/app-quanly
 DB_NAME=app_quanly_conty
 DB_USER=app_user
@@ -123,8 +124,8 @@ echo "  ✓ Frontend build xong → $APP_DIR/dist"
 # ===== 6. Cấu hình nginx =====
 echo ""
 echo "▶ [6/7] Cấu hình nginx..."
-cd - > /dev/null
-sed "s|ten-mien-cua-ban.com|$DOMAIN|g" deploy/nginx.conf > /etc/nginx/sites-available/app-quanly
+cd "$REPO_DIR"
+sed "s|ten-mien-cua-ban.com|$DOMAIN|g" "$REPO_DIR/deploy/nginx.conf" > /etc/nginx/sites-available/app-quanly
 ln -sf /etc/nginx/sites-available/app-quanly /etc/nginx/sites-enabled/app-quanly
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
