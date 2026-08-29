@@ -17,8 +17,16 @@ import {
 } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '../../stores/authStore';
+import ProjectPicker from '../../components/common/ProjectPicker';
 
 export default function TasksPage() {
+  const { user } = useAuthStore();
+  const isManager = ['QL', 'VP'].includes(user?.role);
+  // VP/QL: mặc định "Việc của tôi"; tab "Tất cả" để giao việc & theo dõi
+  const [tab, setTab] = useState('mine');
+  const [monthFilter, setMonthFilter] = useState('');
+  const [projectFilter, setProjectFilter] = useState('');
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,7 +36,7 @@ export default function TasksPage() {
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [tab, monthFilter, projectFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     filterTasks();
@@ -37,7 +45,15 @@ export default function TasksPage() {
   const fetchTasks = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get('/tasks');
+      const params = {};
+      if (isManager && tab === 'mine') params.assignedTo = user.employeeId;
+      if (projectFilter) params.projectId = projectFilter;
+      if (monthFilter) {
+        const [y, m] = monthFilter.split('-').map(Number);
+        params.from = `${monthFilter}-01`;
+        params.to = `${monthFilter}-${String(new Date(y, m, 0).getDate()).padStart(2, '0')}`;
+      }
+      const response = await api.get('/tasks', { params });
       if (response.data.success) {
         setTasks(response.data.data);
       }
@@ -179,6 +195,19 @@ export default function TasksPage() {
         </Link>
       </div>
 
+      {isManager && (
+        <div className="flex gap-2">
+          <button onClick={() => setTab('mine')}
+            className={`px-4 py-2 rounded-full text-sm font-medium ${tab === 'mine' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-300'}`}>
+            Việc của tôi
+          </button>
+          <button onClick={() => setTab('all')}
+            className={`px-4 py-2 rounded-full text-sm font-medium ${tab === 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-300'}`}>
+            Tất cả công việc
+          </button>
+        </div>
+      )}
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow p-4">
@@ -216,6 +245,24 @@ export default function TasksPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="input-field pl-10 w-full"
+            />
+          </div>
+
+          <input
+            type="month"
+            value={monthFilter}
+            onChange={(e) => setMonthFilter(e.target.value)}
+            className="input-field !w-auto"
+            title="Lọc theo tháng"
+          />
+
+          <div className="min-w-[180px]">
+            <ProjectPicker
+              value={projectFilter}
+              onChange={(id) => setProjectFilter(id)}
+              allowCreate={false}
+              label=""
+              placeholder="Lọc theo dự án..."
             />
           </div>
 

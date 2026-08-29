@@ -32,7 +32,10 @@ import {
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../stores/authStore';
+import { Link } from 'react-router-dom';
 import MyDashboardPage from './MyDashboardPage';
+import VPWorkbenchPage from './VPWorkbenchPage';
+import PerformanceBlock from '../components/dashboard/PerformanceBlock';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -40,6 +43,10 @@ export default function DashboardPage() {
   // Kỹ thuật: tổng quan cá nhân, không thấy số liệu công ty
   if (user && !['QL', 'VP'].includes(user.role)) {
     return <MyDashboardPage />;
+  }
+  // Văn phòng: bàn làm việc — việc chờ xử lý thay vì biểu đồ
+  if (user?.role === 'VP') {
+    return <VPWorkbenchPage />;
   }
   const [stats, setStats] = useState({
     totalProjects: 0,
@@ -185,16 +192,17 @@ export default function DashboardPage() {
     }
   };
 
-  const StatCard = ({ icon: Icon, title, value, unit = '', trend = null, color = 'blue' }) => {
+  const StatCard = ({ icon: Icon, title, value, unit = '', trend = null, color = 'blue', to = null }) => {
     const colors = {
       blue: 'bg-blue-50 text-blue-600',
       green: 'bg-green-50 text-green-600',
       purple: 'bg-purple-50 text-purple-600',
       orange: 'bg-orange-50 text-orange-600',
     };
+    const Wrapper = to ? Link : 'div';
 
     return (
-      <div className="bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow">
+      <Wrapper {...(to ? { to } : {})} className="block bg-white rounded-lg shadow p-6 hover:shadow-lg transition-shadow cursor-pointer">
         <div className="flex items-start justify-between">
           <div>
             <p className="text-gray-600 text-sm mb-1">{title}</p>
@@ -215,7 +223,7 @@ export default function DashboardPage() {
             <Icon size={24} />
           </div>
         </div>
-      </div>
+      </Wrapper>
     );
   };
 
@@ -274,7 +282,7 @@ export default function DashboardPage() {
             value={stats.totalProjects}
             unit="dự án"
             color="blue"
-            trend={{ value: 12, positive: true }}
+            to="/projects"
           />
           <StatCard
             icon={DollarSign}
@@ -282,7 +290,8 @@ export default function DashboardPage() {
             value={Math.round(stats.monthlyIncome / 1000000)}
             unit="triệu đ"
             color="green"
-            trend={{ value: 8, positive: true }}
+            to={`/funds?type=Thu&month=${stats.month || ''}`}
+            trend={stats.incomeChangePct != null ? { value: Math.abs(stats.incomeChangePct), positive: stats.incomeChangePct >= 0 } : null}
           />
           <StatCard
             icon={DollarSign}
@@ -290,7 +299,8 @@ export default function DashboardPage() {
             value={Math.round(stats.monthlyExpenses / 1000000)}
             unit="triệu đ"
             color="orange"
-            trend={{ value: 5, positive: false }}
+            to={`/funds?type=Chi&month=${stats.month || ''}`}
+            trend={stats.expenseChangePct != null ? { value: Math.abs(stats.expenseChangePct), positive: stats.expenseChangePct < 0 } : null}
           />
           <StatCard
             icon={Users}
@@ -298,6 +308,7 @@ export default function DashboardPage() {
             value={stats.totalEmployees}
             unit="người"
             color="purple"
+            to="/employees"
           />
           <StatCard
             icon={CheckSquare}
@@ -305,13 +316,15 @@ export default function DashboardPage() {
             value={stats.pendingTasks}
             unit="công việc"
             color="blue"
+            to="/tasks"
           />
           <StatCard
             icon={BarChart3}
-            title="Tổng Chi Phí"
-            value={Math.round(stats.totalExpenses / 1000000)}
+            title="Số Dư Quỹ"
+            value={Math.round((stats.fundBalance || 0) / 1000000)}
             unit="triệu đ"
-            color="orange"
+            color="green"
+            to="/funds"
           />
         </div>
       )}
@@ -469,6 +482,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Hiệu suất nhân viên — chỉ Quản lý (VP đã rẽ sang Bàn Làm Việc) */}
+      <PerformanceBlock />
     </div>
   );
 }

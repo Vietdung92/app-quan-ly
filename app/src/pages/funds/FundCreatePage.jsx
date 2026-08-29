@@ -10,6 +10,7 @@ import FormInput from '../../components/common/FormInput';
 import FormSelect from '../../components/common/FormSelect';
 import FormTextarea from '../../components/common/FormTextarea';
 import Button from '../../components/common/Button';
+import ProjectPicker from '../../components/common/ProjectPicker';
 import useForm, { rules } from '../../hooks/useForm';
 import fundService from '../../services/fundService';
 import toast from 'react-hot-toast';
@@ -18,6 +19,7 @@ export default function FundCreatePage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [meta, setMeta] = useState({ groups: [], objects: [], categories: [], people: [] });
+  const [pickedProjectId, setPickedProjectId] = useState('');
 
   useEffect(() => {
     fundService.getMeta()
@@ -66,6 +68,8 @@ export default function FundCreatePage() {
       date: rules.required('Ngày'),
     }
   );
+
+  const isProjectGroup = meta.groups.find((g) => String(g.id) === String(formData.groupId))?.name === 'Dự án';
 
   // Đối tượng và hạng mục lọc theo nhóm + loại đã chọn
   const groupObjects = meta.objects.filter((o) => String(o.groupId) === String(formData.groupId));
@@ -167,6 +171,29 @@ export default function FundCreatePage() {
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {isProjectGroup ? (
+              <ProjectPicker
+                value={pickedProjectId}
+                onChange={(id, project) => {
+                  setPickedProjectId(id);
+                  // Đồng bộ: chọn dự án → đối tượng Quỹ trùng tên
+                  const obj = project
+                    ? meta.objects.find((o) => String(o.groupId) === String(formData.groupId) && o.name === project.name)
+                    : null;
+                  setFieldValue('objectId', obj ? String(obj.id) : '');
+                  if (project && !obj) {
+                    // Đối tượng Quỹ vừa được backend tạo kèm dự án — tải lại danh mục
+                    fundService.getMeta().then((res) => {
+                      setMeta(res.data);
+                      const o2 = res.data.objects.find((o) => String(o.groupId) === String(formData.groupId) && o.name === project.name);
+                      if (o2) setFieldValue('objectId', String(o2.id));
+                    }).catch(() => {});
+                  }
+                }}
+                label="Dự Án"
+                placeholder="Gõ tên dự án..."
+              />
+            ) : (
             <FormSelect
               label="Đối Tượng (căn hộ/dự án)"
               name="objectId"
@@ -178,6 +205,7 @@ export default function FundCreatePage() {
               ]}
               disabled={!formData.groupId}
             />
+            )}
 
             <FormSelect
               label="Hạng Mục"

@@ -21,13 +21,30 @@ import api from '../../services/api';
 export default function SettingsPage() {
   const { user } = useAuthStore();
   const [captionTpl, setCaptionTpl] = useState('');
+  const [expenseTpl, setExpenseTpl] = useState('');
+  const [tgLink, setTgLink] = useState('');
   useEffect(() => {
     if (['QL', 'VP'].includes(user?.role)) {
       api.get('/tasks/config/photo-caption')
         .then((res) => setCaptionTpl(res.data.data.value))
         .catch(() => {});
+      api.get('/push/app-config')
+        .then((res) => {
+          setExpenseTpl(res.data.data.expense_photo_caption || '');
+          setTgLink(res.data.data.telegram_group_link || '');
+        })
+        .catch(() => {});
     }
   }, [user]);
+
+  const saveConfig = async (key, value, label) => {
+    try {
+      await api.put('/push/app-config', { key, value });
+      toast.success(`Đã lưu ${label}`);
+    } catch (error) {
+      toast.error(error.response?.data?.error || 'Không thể lưu');
+    }
+  };
   const [settings, setSettings] = useState({
     emailNotifications: true,
     pushNotifications: true,
@@ -68,10 +85,55 @@ export default function SettingsPage() {
       </div>
 
       <div className="max-w-2xl">
+        {/* Link nhóm Telegram (QL/VP) */}
+        {['QL', 'VP'].includes(user?.role) && (
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Nhóm Telegram Công Ty</h2>
+            <p className="text-sm text-gray-500 mb-3">
+              Dán link mời nhóm (Telegram → Group Info → Invite Link). Nút Telegram trên thanh tiêu đề của mọi nhân viên sẽ mở thẳng nhóm này.
+            </p>
+            <input
+              type="text"
+              value={tgLink}
+              onChange={(e) => setTgLink(e.target.value)}
+              className="input-field"
+              placeholder="https://t.me/+..."
+            />
+            <button onClick={() => saveConfig('telegram_group_link', tgLink, 'link nhóm Telegram')} className="btn-primary mt-3">
+              Lưu Link
+            </button>
+          </div>
+        )}
+
+        {/* Mẫu chú thích ảnh chi phí (QL/VP) */}
+        {['QL', 'VP'].includes(user?.role) && (
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Mẫu Chú Thích Ảnh Chi Phí</h2>
+            <p className="text-sm text-gray-500 mb-3">
+              Khi nhân viên gửi chi phí kèm ảnh, Telegram nhận chú thích theo mẫu này. Biến:{' '}
+              <code className="bg-gray-100 px-1 rounded">{'{name}'}</code>{' '}
+              <code className="bg-gray-100 px-1 rounded">{'{project}'}</code>{' '}
+              <code className="bg-gray-100 px-1 rounded">{'{amount}'}</code>{' '}
+              <code className="bg-gray-100 px-1 rounded">{'{employee}'}</code>{' '}
+              <code className="bg-gray-100 px-1 rounded">{'{note}'}</code>{' '}
+              <code className="bg-gray-100 px-1 rounded">{'{date}'}</code>
+            </p>
+            <textarea
+              value={expenseTpl}
+              onChange={(e) => setExpenseTpl(e.target.value)}
+              className="input-field"
+              rows={3}
+            />
+            <button onClick={() => saveConfig('expense_photo_caption', expenseTpl, 'mẫu chú thích chi phí')} className="btn-primary mt-3">
+              Lưu Mẫu
+            </button>
+          </div>
+        )}
+
         {/* Mẫu chú thích ảnh Telegram (QL/VP) */}
         {['QL', 'VP'].includes(user?.role) && (
           <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">Mẫu Chú Thích Ảnh Telegram</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Mẫu Chú Thích Ảnh Công Việc</h2>
             <p className="text-sm text-gray-500 mb-3">
               Khi nhân viên gửi ảnh công việc, Telegram nhận chú thích theo mẫu này.
               Biến tự thay: <code className="bg-gray-100 px-1 rounded">{'{task}'}</code>{' '}

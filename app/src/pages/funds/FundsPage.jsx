@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import {
   Wallet,
   Plus,
@@ -23,10 +23,11 @@ export default function FundsPage() {
   const [summary, setSummary] = useState(null);
   const [meta, setMeta] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchParams] = useSearchParams();
   const [filters, setFilters] = useState({
-    type: '',
+    type: searchParams.get('type') || '',
     groupId: '',
-    month: '',
+    month: searchParams.get('month') || '',
     search: '',
   });
 
