@@ -9,7 +9,7 @@ services:
     name: app-quanly-demo
     runtime: node
     plan: free
-    buildCommand: cd app && npm install && npx vite build && cd ../backend && npm install --omit=dev
+    buildCommand: cd app && npm install --include=dev && npx vite build && cd ../backend && npm install --omit=dev
     startCommand: cd backend && node server.js
     healthCheckPath: /health
     envVars:
