@@ -22,6 +22,8 @@ const NUMBER_FIELDS = new Set([
   'payAmount', 'totalDue', 'totalPaid',
   'ownerRent', 'ownerDeposit', 'buildingFee', 'companyFee', 'grossMargin',
   'ownerTotalDue', 'ownerTotalPaid', 'area',
+  'total', 'expired', 'expiring', 'daysLeft',
+  'declaredRent', 'monthlyTax', 'paidMonths', 'totalMonths', 'overdueMonths', 'paidTotal', 'monthlyTaxTotal', 'overdue',
 ]);
 
 function numerify(row) {

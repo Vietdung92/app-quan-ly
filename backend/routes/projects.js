@@ -55,12 +55,15 @@ router.post('/', requireRole('QL', 'VP'), asyncHandler(async (req, res) => {
   const { name, description, status, budget, startDate, endDate, managerId, team } = req.body;
   if (!name) throw badRequest('Tên dự án là bắt buộc');
 
+  // Chuẩn hóa: chuỗi rỗng từ form → null; người quản lý mặc định là người tạo
+  const mgr = managerId ? parseInt(managerId, 10) : req.user.employeeId;
+
   const projectId = await transaction(async (client) => {
     const result = await client.query(
       `INSERT INTO projects (name, description, status, budget, start_date, end_date, manager_id, created_by)
-       VALUES ($1, $2, COALESCE($3, 'pending'), COALESCE($4, 0), $5, $6, COALESCE($7, $8), $9)
+       VALUES ($1, $2, COALESCE($3, 'pending'), COALESCE($4, 0), $5, $6, $7, $8)
        RETURNING id`,
-      [name, description, status, budget, startDate, endDate, managerId, req.user.employeeId, req.user.userId]
+      [name, description, status, budget || null, startDate || null, endDate || null, mgr, req.user.userId]
     );
     const id = result.rows[0].id;
     if (Array.isArray(team)) {
@@ -80,7 +83,13 @@ router.post('/', requireRole('QL', 'VP'), asyncHandler(async (req, res) => {
 
 // PUT /api/projects/:id (QL, VP)
 router.put('/:id', requireRole('QL', 'VP'), asyncHandler(async (req, res) => {
-  const { name, description, status, budget, spent, startDate, endDate, managerId } = req.body;
+  let { name, description, status, budget, spent, startDate, endDate, managerId } = req.body;
+  // Chuỗi rỗng từ form → null để COALESCE giữ giá trị cũ
+  budget = budget === '' ? null : budget;
+  spent = spent === '' ? null : spent;
+  startDate = startDate || null;
+  endDate = endDate || null;
+  managerId = managerId ? parseInt(managerId, 10) : null;
   const row = await getOne(
     `UPDATE projects SET
        name = COALESCE($1, name),

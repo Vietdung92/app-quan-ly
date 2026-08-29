@@ -65,6 +65,8 @@ app.use('/api/notifications', authenticateToken, require('./routes/notifications
 app.use('/api/dashboard', authenticateToken, require('./routes/dashboard'));
 app.use('/api/funds', authenticateToken, require('./routes/funds'));
 app.use('/api/apartments', authenticateToken, require('./routes/apartments'));
+app.use('/api/residents', authenticateToken, require('./routes/residents'));
+app.use('/api/taxes', authenticateToken, require('./routes/taxes'));
 
 // Test kết nối Telegram (QL only): kiểm tra bot + gửi tin nhắn thử
 app.post('/api/telegram/test', authenticateToken, requireAdmin, async (req, res) => {
