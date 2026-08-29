@@ -26,6 +26,7 @@ import {
   X,
   Globe,
   Receipt,
+  Wrench,
 } from 'lucide-react';
 
 const MENU_ITEMS = [
@@ -34,6 +35,7 @@ const MENU_ITEMS = [
   { path: '/apartments', label: 'Căn Hộ', icon: Building2 },
   { path: '/residents', label: 'Tạm Trú', icon: Globe },
   { path: '/taxes', label: 'Thuế Hộ', icon: Receipt, roles: ['QL', 'VP'] },
+  { path: '/repairs', label: 'Báo Hỏng', icon: Wrench },
   { path: '/projects', label: 'Dự Án', icon: FolderOpen },
   { path: '/expenses', label: 'Chi Phí', icon: DollarSign },
   { path: '/tasks', label: 'Công Việc', icon: CheckSquare },

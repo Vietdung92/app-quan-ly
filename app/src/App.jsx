@@ -74,6 +74,9 @@ import ResidentsPage from './pages/residents/ResidentsPage';
 import ResidentFormPage from './pages/residents/ResidentFormPage';
 import TaxesPage from './pages/taxes/TaxesPage';
 import TaxFormPage from './pages/taxes/TaxFormPage';
+import RepairsPage from './pages/repairs/RepairsPage';
+import PortalLoginPage from './pages/portal/PortalLoginPage';
+import PortalHomePage from './pages/portal/PortalHomePage';
 
 // Pages - Notifications
 import NotificationsPage from './pages/NotificationsPage';
@@ -95,6 +98,10 @@ export default function App() {
 
       <Routes>
         {/* Auth Routes */}
+        {/* Tenant Portal - khách thuê, tách riêng khỏi hệ thống nhân viên */}
+        <Route path="/portal/login" element={<PortalLoginPage />} />
+        <Route path="/portal" element={<PortalHomePage />} />
+
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -403,6 +410,16 @@ export default function App() {
             element={
               <ProtectedRoute requiredRole={['QL', 'VP']}>
                 <TaxFormPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Repairs - Báo hỏng khách thuê */}
+          <Route
+            path="/repairs"
+            element={
+              <ProtectedRoute>
+                <RepairsPage />
               </ProtectedRoute>
             }
           />
