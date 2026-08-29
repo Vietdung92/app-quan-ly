@@ -45,6 +45,7 @@ const MENU_ITEMS = [
   { path: '/advances', label: 'Ứng Lương', icon: TrendingUp },
   { path: '/payroll', label: 'Bảng Lương', icon: FileText },
   { path: '/notifications', label: 'Thông Báo', icon: Bell },
+  { path: '/settings', label: 'Cài Đặt', icon: Settings, roles: ['QL', 'VP'] },
 ];
 
 export default function Sidebar({ open, onToggle }) {
@@ -132,14 +133,14 @@ export default function Sidebar({ open, onToggle }) {
                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 transition-colors"
               >
                 <Settings size={18} />
-                <span className="hidden sm:inline">Settings</span>
+                <span className="hidden sm:inline">Cài Đặt</span>
               </Link>
               <button
                 onClick={logout}
                 className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-gray-300 hover:bg-red-600 hover:text-white transition-colors"
               >
                 <LogOut size={18} />
-                <span className="hidden sm:inline">Logout</span>
+                <span className="hidden sm:inline">Đăng Xuất</span>
               </button>
             </div>
           </div>
