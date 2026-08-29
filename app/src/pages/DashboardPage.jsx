@@ -32,9 +32,15 @@ import {
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../stores/authStore';
+import MyDashboardPage from './MyDashboardPage';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
+
+  // Kỹ thuật: tổng quan cá nhân, không thấy số liệu công ty
+  if (user && !['QL', 'VP'].includes(user.role)) {
+    return <MyDashboardPage />;
+  }
   const [stats, setStats] = useState({
     totalProjects: 0,
     totalExpenses: 0,

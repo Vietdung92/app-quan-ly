@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Building2, LogOut, AlertTriangle, Wrench, Plus, FileText,
   MessageCircle, QrCode, UserPlus, Home, ChevronDown, ChevronUp,
+  MapPin, Image as ImageIcon,
 } from 'lucide-react';
 import portalApi from '../../services/portalApi';
 
@@ -333,18 +334,43 @@ export default function PortalHomePage() {
             <p className="text-xs text-gray-400 mb-3">Moving or know someone looking? These are available now.</p>
             <div className="space-y-2">
               {vacant.map((v) => (
-                <div key={v.name} className="flex items-center justify-between border border-gray-100 rounded-xl p-3 text-sm">
-                  <div>
-                    <b className="text-gray-900">{v.name}</b>
-                    <span className="text-gray-500">
-                      {v.bedrooms ? ` · ${v.bedrooms} BR` : ''}{v.area ? ` · ${v.area} m²` : ''}
-                    </span>
+                <div key={v.name} className="border border-gray-100 rounded-xl p-3">
+                  <div className="flex items-start justify-between gap-2 text-sm">
+                    <div className="min-w-0">
+                      <b className="text-gray-900">{v.name}</b>
+                      {v.projectName && <span className="text-gray-600"> · {v.projectName}</span>}
+                      <div className="text-gray-500 mt-0.5">
+                        {[v.bedrooms && `${v.bedrooms} BR`, v.area && `${v.area} m²`].filter(Boolean).join(' · ')}
+                      </div>
+                      {v.address && (
+                        <div className="text-gray-400 text-xs mt-0.5 flex items-center gap-1">
+                          <MapPin size={12} className="shrink-0" /> {v.address}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      {v.rentAmount > 0
+                        ? <b className="text-blue-600">{money(v.rentAmount)} ₫/mo</b>
+                        : <span className="text-gray-400">Contact us</span>}
+                      <div className="text-[11px] text-green-600 font-medium mt-0.5">Available now</div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    {v.rentAmount > 0
-                      ? <b className="text-blue-600">{money(v.rentAmount)} ₫/mo</b>
-                      : <span className="text-gray-400">Contact us</span>}
-                  </div>
+                  {(v.imageLink || v.mapLink) && (
+                    <div className="flex gap-2 mt-2">
+                      {v.imageLink && (
+                        <a href={v.imageLink} target="_blank" rel="noreferrer"
+                          className="flex-1 text-center text-sm font-medium text-blue-600 bg-blue-50 rounded-lg py-2 flex items-center justify-center gap-1.5">
+                          <ImageIcon size={15} /> Photos
+                        </a>
+                      )}
+                      {v.mapLink && (
+                        <a href={v.mapLink} target="_blank" rel="noreferrer"
+                          className="flex-1 text-center text-sm font-medium text-blue-600 bg-blue-50 rounded-lg py-2 flex items-center justify-center gap-1.5">
+                          <MapPin size={15} /> Map
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

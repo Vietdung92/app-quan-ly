@@ -17,6 +17,16 @@ const apartmentService = {
     return response.data;
   },
 
+  create: async (name) => {
+    const response = await api.post('/apartments', { name });
+    return response.data;
+  },
+
+  remove: async (objectId) => {
+    const response = await api.delete(`/apartments/${objectId}`);
+    return response.data;
+  },
+
   getById: async (objectId) => {
     const response = await api.get(`/apartments/${objectId}`);
     return response.data;

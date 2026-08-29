@@ -244,7 +244,7 @@ export default function App() {
           <Route
             path="/tasks/new"
             element={
-              <ProtectedRoute requiredRole={['QL', 'VP']}>
+              <ProtectedRoute>
                 <TaskCreatePage />
               </ProtectedRoute>
             }

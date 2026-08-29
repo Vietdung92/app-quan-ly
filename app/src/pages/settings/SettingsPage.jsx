@@ -3,7 +3,7 @@
  * Path: src/pages/settings/SettingsPage.jsx
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Bell,
   Lock,
@@ -15,8 +15,19 @@ import {
 } from 'lucide-react';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '../../stores/authStore';
+import api from '../../services/api';
 
 export default function SettingsPage() {
+  const { user } = useAuthStore();
+  const [captionTpl, setCaptionTpl] = useState('');
+  useEffect(() => {
+    if (['QL', 'VP'].includes(user?.role)) {
+      api.get('/tasks/config/photo-caption')
+        .then((res) => setCaptionTpl(res.data.data.value))
+        .catch(() => {});
+    }
+  }, [user]);
   const [settings, setSettings] = useState({
     emailNotifications: true,
     pushNotifications: true,
@@ -57,6 +68,39 @@ export default function SettingsPage() {
       </div>
 
       <div className="max-w-2xl">
+        {/* Mẫu chú thích ảnh Telegram (QL/VP) */}
+        {['QL', 'VP'].includes(user?.role) && (
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Mẫu Chú Thích Ảnh Telegram</h2>
+            <p className="text-sm text-gray-500 mb-3">
+              Khi nhân viên gửi ảnh công việc, Telegram nhận chú thích theo mẫu này.
+              Biến tự thay: <code className="bg-gray-100 px-1 rounded">{'{task}'}</code>{' '}
+              <code className="bg-gray-100 px-1 rounded">{'{employee}'}</code>{' '}
+              <code className="bg-gray-100 px-1 rounded">{'{note}'}</code>{' '}
+              <code className="bg-gray-100 px-1 rounded">{'{date}'}</code>
+            </p>
+            <textarea
+              value={captionTpl}
+              onChange={(e) => setCaptionTpl(e.target.value)}
+              className="input-field"
+              rows={3}
+            />
+            <button
+              onClick={async () => {
+                try {
+                  await api.put('/tasks/config/photo-caption', { value: captionTpl });
+                  toast.success('Đã lưu mẫu chú thích');
+                } catch (error) {
+                  toast.error(error.response?.data?.error || 'Không thể lưu');
+                }
+              }}
+              className="btn-primary mt-3"
+            >
+              Lưu Mẫu
+            </button>
+          </div>
+        )}
+
         {/* Notifications Section */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200">

@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Building2,
   Calendar,
@@ -15,6 +15,7 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   Globe,
+  Plus,
 } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
@@ -24,6 +25,7 @@ import toast from 'react-hot-toast';
 
 export default function ApartmentsPage() {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
   const isManager = ['QL', 'VP'].includes(user?.role);
   const [apartments, setApartments] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -139,6 +141,24 @@ export default function ApartmentsPage() {
             <Button variant="outline" icon={RefreshCw} onClick={handleGenerate}>
               Tạo Kỳ Tháng
             </Button>
+          )}
+          {isManager && (
+            <button
+              onClick={async () => {
+                const name = window.prompt('Mã căn mới (VD: A-12.05):');
+                if (!name || !name.trim()) return;
+                try {
+                  const res = await apartmentService.create(name.trim());
+                  toast.success(`Đã thêm căn ${name.trim()}`);
+                  navigate(`/apartments/${res.data.id}`);
+                } catch (error) {
+                  toast.error(error.response?.data?.error || 'Không thể thêm căn');
+                }
+              }}
+              className="btn-primary flex items-center gap-1.5"
+            >
+              <Plus size={16} /> Thêm Căn
+            </button>
           )}
           <Link
             to="/residents"

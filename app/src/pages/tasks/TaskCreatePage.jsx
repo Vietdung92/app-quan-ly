@@ -15,8 +15,11 @@ import taskService from '../../services/taskService';
 import employeeService from '../../services/employeeService';
 import projectService from '../../services/projectService';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '../../stores/authStore';
 
 export default function TaskCreatePage() {
+  const { user } = useAuthStore();
+  const isManager = ['QL', 'VP'].includes(user?.role);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
@@ -97,7 +100,7 @@ export default function TaskCreatePage() {
     {
       title: rules.required('Tiêu đề'),
       description: rules.required('Mô tả'),
-      assignedTo: rules.required('Người thực hiện'),
+      ...(isManager ? { assignedTo: rules.required('Người thực hiện') } : {}),
       dueDate: rules.required('Hạn chót'),
     }
   );
@@ -169,7 +172,7 @@ export default function TaskCreatePage() {
               required
             />
 
-            <FormSelect
+            {isManager ? (<FormSelect
               label="Giao Cho"
               name="assignedTo"
               value={formData.assignedTo}
@@ -177,7 +180,13 @@ export default function TaskCreatePage() {
               error={errors.assignedTo}
               options={employees}
               required
-            />
+            />) : (
+
+
+              <div className="bg-blue-50 rounded-lg p-3 text-sm text-blue-800">Công việc sẽ được gán cho chính bạn</div>
+
+
+            )}
           </div>
 
           {/* Due Date */}

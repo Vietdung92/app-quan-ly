@@ -31,9 +31,9 @@ import {
 
 const MENU_ITEMS = [
   { path: '/', label: 'Tổng Quan', icon: BarChart3 },
-  { path: '/funds', label: 'Thu Chi Quỹ', icon: Wallet },
-  { path: '/apartments', label: 'Căn Hộ', icon: Building2 },
-  { path: '/residents', label: 'Tạm Trú', icon: Globe },
+  { path: '/funds', label: 'Thu Chi Quỹ', icon: Wallet, roles: ['QL', 'VP'] },
+  { path: '/apartments', label: 'Căn Hộ', icon: Building2, roles: ['QL', 'VP'] },
+  { path: '/residents', label: 'Tạm Trú', icon: Globe, roles: ['QL', 'VP'] },
   { path: '/taxes', label: 'Thuế Hộ', icon: Receipt, roles: ['QL', 'VP'] },
   { path: '/repairs', label: 'Báo Hỏng', icon: Wrench },
   { path: '/projects', label: 'Dự Án', icon: FolderOpen },

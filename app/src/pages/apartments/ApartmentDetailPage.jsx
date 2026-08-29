@@ -5,7 +5,9 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Building2, Save, User, Home, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Building2, Save, User, Home, ExternalLink,
+  Trash2,
+} from 'lucide-react';
 import FormInput from '../../components/common/FormInput';
 import FormSelect from '../../components/common/FormSelect';
 import FormTextarea from '../../components/common/FormTextarea';
@@ -15,6 +17,7 @@ import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
 
 const EMPTY_FORM = {
+  name: '',
   bedrooms: '', area: '', electricCode: '', waterCode: '',
   imageLink: '', zaloLink: '', contractLink: '', qrLink: '',
   ownerName: '', ownerPhone: '', ownerPassport: '', ownerBank: '',
@@ -23,6 +26,7 @@ const EMPTY_FORM = {
   contractStart: '', contractEnd: '', paymentDay: '', paymentNote: '',
   rentalForm: '', buildingFee: '', managementType: 'sublease', companyFee: '',
   aptStatus: '', address: '', notes: '',
+  projectName: '', mapLink: '',
 };
 
 export default function ApartmentDetailPage() {
@@ -193,6 +197,9 @@ export default function ApartmentDetailPage() {
                   onChange={handleChange} disabled={disabled} />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormInput label="Mã Căn (đổi tên sẽ áp dụng toàn hệ thống)" name="name" value={form.name}
+
+                  onChange={handleChange} required />
                 <FormSelect label="Trạng Thái" name="aptStatus" value={form.aptStatus}
                   onChange={handleChange} disabled={disabled}
                   options={[
@@ -200,6 +207,7 @@ export default function ApartmentDetailPage() {
                     { label: 'Đang thuê', value: 'Đang thuê' },
                     { label: 'Đang trống', value: 'Đang trống' },
                     { label: 'Sắp hết hạn', value: 'Sắp hết hạn' },
+                    { label: 'Ngưng quản lý', value: 'Ngưng quản lý' },
                   ]} />
                 <FormSelect label="Mô Hình" name="managementType" value={form.managementType}
                   onChange={handleChange} disabled={disabled}
@@ -208,6 +216,10 @@ export default function ApartmentDetailPage() {
                     { label: 'Quản lý hộ (ăn phí)', value: 'manage' },
                   ]} />
               </div>
+              <FormInput label="Dự Án (VD: Masteri Thảo Điền)" name="projectName" value={form.projectName}
+                onChange={handleChange} />
+              <FormInput label="Link Bản Đồ (Google Maps)" name="mapLink" value={form.mapLink}
+                onChange={handleChange} placeholder="Dán link chia sẻ vị trí từ Google Maps" />
               <FormInput label="Địa Chỉ" name="address" value={form.address}
                 onChange={handleChange} disabled={disabled} />
             </div>
@@ -310,6 +322,26 @@ export default function ApartmentDetailPage() {
               <Button type="submit" variant="primary" icon={Save} loading={isSaving}>
                 Lưu Hồ Sơ
               </Button>
+            )}
+
+            {isManager && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!window.confirm(`Xóa căn ${apartment.name}? Toàn bộ hồ sơ, kỳ thu, tạm trú của căn sẽ bị xóa. Không thể hoàn tác.`)) return;
+                  try {
+                    await apartmentService.remove(id);
+                    toast.success('Đã xóa căn hộ');
+                    navigate('/apartments');
+                  } catch (error) {
+                    toast.error(error.response?.data?.error || 'Không thể xóa');
+                  }
+                }}
+                className="w-full flex items-center justify-center gap-2 text-red-600 text-sm py-2 hover:bg-red-50 rounded-lg border border-red-100"
+              >
+                <Trash2 size={16} />
+                Xóa căn hộ này
+              </button>
             )}
           </form>
         </div>

@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import TaskPhotos from '../../components/tasks/TaskPhotos';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -226,6 +227,9 @@ export default function TaskDetailPage() {
               </div>
             )}
           </div>
+
+          {/* Ảnh báo cáo công việc */}
+          <TaskPhotos taskId={id} />
 
           {/* Metadata */}
           <div className="bg-gray-50 rounded-lg p-4">

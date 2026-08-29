@@ -7,9 +7,10 @@
  */
 
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart3, Wallet, Building2, CheckSquare, User } from 'lucide-react';
+import { useAuthStore } from '../../stores/authStore';
+import { BarChart3, Wallet, Building2, CheckSquare, User, DollarSign, Wrench } from 'lucide-react';
 
-const NAV_ITEMS = [
+const MANAGER_ITEMS = [
   { path: '/', label: 'Tổng quan', icon: BarChart3 },
   { path: '/funds', label: 'Thu Chi', icon: Wallet },
   { path: '/apartments', label: 'Căn Hộ', icon: Building2 },
@@ -17,8 +18,19 @@ const NAV_ITEMS = [
   { path: '/profile', label: 'Cá nhân', icon: User },
 ];
 
+// Kỹ thuật: chỉ những gì liên quan trực tiếp công việc của họ
+const KT_ITEMS = [
+  { path: '/', label: 'Tổng quan', icon: BarChart3 },
+  { path: '/tasks', label: 'Việc', icon: CheckSquare },
+  { path: '/expenses', label: 'Chi Phí', icon: DollarSign },
+  { path: '/repairs', label: 'Báo Hỏng', icon: Wrench },
+  { path: '/profile', label: 'Cá nhân', icon: User },
+];
+
 export default function BottomNav() {
   const location = useLocation();
+  const { user } = useAuthStore();
+  const NAV_ITEMS = ['QL', 'VP'].includes(user?.role) ? MANAGER_ITEMS : KT_ITEMS;
 
   const isActive = (path) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
