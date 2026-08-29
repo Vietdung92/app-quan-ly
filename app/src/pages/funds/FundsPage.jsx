@@ -13,6 +13,7 @@ import {
   Calendar,
   TrendingUp,
   TrendingDown,
+  Download,
 } from 'lucide-react';
 import fundService from '../../services/fundService';
 import toast from 'react-hot-toast';
@@ -70,6 +71,38 @@ export default function FundsPage() {
 
   const money = (n) => Number(n).toLocaleString('vi-VN');
 
+
+  // Xuất danh sách giao dịch đang hiển thị (theo bộ lọc) ra file CSV mở được bằng Excel
+  const exportCsv = () => {
+    if (!transactions.length) {
+      toast.error('Không có giao dịch nào để xuất');
+      return;
+    }
+    const header = ['Ngày', 'Loại', 'Nhóm', 'Đối tượng', 'Hạng mục', 'Số tiền', 'Người chi/nộp', 'Hoàn trả', 'Ghi chú'];
+    const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const rows = transactions.map((tx) => [
+      new Date(tx.date).toLocaleDateString('vi-VN'),
+      tx.type,
+      tx.groupName,
+      tx.objectName || '',
+      tx.categoryName || '',
+      tx.type === 'Thu' ? Number(tx.amount) : -Number(tx.amount),
+      tx.person || '',
+      tx.reimburse || '',
+      tx.notes || '',
+    ].map(esc).join(','));
+    // BOM để Excel nhận đúng tiếng Việt (UTF-8)
+    const csv = '\ufeff' + [header.map(esc).join(','), ...rows].join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `thu-chi-quy-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Đã xuất ${transactions.length} giao dịch`);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -78,7 +111,11 @@ export default function FundsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Thu Chi Quỹ</h1>
           <p className="text-gray-600 mt-1">Theo dõi các khoản thu chi của công ty</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <button onClick={exportCsv} className="btn-secondary flex items-center gap-2">
+            <Download size={18} />
+            Xuất Excel
+          </button>
           <Link to="/funds/report" className="btn-secondary flex items-center gap-2">
             <BarChart3 size={18} />
             Báo Cáo Lãi/Lỗ
