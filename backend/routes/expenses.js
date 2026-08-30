@@ -184,28 +184,94 @@ router.post('/', upload.single('photo'), asyncHandler(async (req, res) => {
   created(res, numerify(expense));
 }));
 
-// PUT /api/expenses/:id — chỉ sửa được khi còn pending
+// PUT /api/expenses/:id — sửa pending (ai cũng được), hoặc sửa approved (VP/QL → quay lại pending)
 router.put('/:id', asyncHandler(async (req, res) => {
   const { name, description, amount, date, notes } = req.body;
-  const row = await getOne(
-    `UPDATE expenses SET
-       name = COALESCE($1, name),
-       description = COALESCE($2, description),
-       amount = COALESCE($3, amount),
-       date = COALESCE($4, date),
-       notes = COALESCE($5, notes)
-     WHERE id = $6 AND status = 'pending' RETURNING id`,
-    [name, description, amount, date, notes, req.params.id]
-  );
-  if (!row) throw badRequest('Chi phí không tồn tại hoặc đã được duyệt (không sửa được)');
-  const expense = await getOne(`${SELECT} WHERE x.id = $1`, [row.id]);
+  const expenseId = req.params.id;
+
+  // Lấy expense hiện tại
+  const current = await getOne(`SELECT id, status, created_by, approved_by FROM expenses WHERE id = $1`, [expenseId]);
+  if (!current) throw notFound('Không tìm thấy chi phí');
+
+  // Kiểm tra quyền sửa
+  const isCreator = current.created_by === req.user.userId;
+  const isVPQL = ['QL', 'VP'].includes(req.user.role);
+
+  // pending: người tạo hoặc VP/QL đều được sửa
+  // approved: chỉ VP/QL được sửa, và phải quay lại pending để QL duyệt lại
+  if (current.status === 'pending') {
+    if (!isCreator && !isVPQL) {
+      return res.status(403).json({ success: false, error: 'Bạn chỉ sửa được chi phí của mình' });
+    }
+  } else if (current.status === 'approved') {
+    if (!isVPQL) {
+      return res.status(403).json({ success: false, error: 'Chỉ VP/QL được sửa chi phí đã duyệt' });
+    }
+  } else {
+    throw badRequest('Chi phí đã được từ chối hoặc không sửa được');
+  }
+
+  // Update expense
+  const result = await transaction(async (client) => {
+    // Cập nhật expense
+    const upd = await client.query(
+      `UPDATE expenses SET
+         name = COALESCE($1, name),
+         description = COALESCE($2, description),
+         amount = COALESCE($3, amount),
+         date = COALESCE($4, date),
+         notes = COALESCE($5, notes),
+         status = CASE WHEN status = 'approved' AND $6 THEN 'pending' ELSE status END,
+         approved_by = CASE WHEN status = 'approved' AND $6 THEN NULL ELSE approved_by END,
+         fund_transaction_id = CASE WHEN status = 'approved' AND $6 THEN NULL ELSE fund_transaction_id END
+       WHERE id = $7 RETURNING id`,
+      [name, description, amount, date, notes, isVPQL && current.status === 'approved', expenseId]
+    );
+    if (!upd.rows.length) throw badRequest('Không thể cập nhật chi phí');
+
+    // Nếu approved → pending: xóa fund_transaction cũ nếu có
+    if (isVPQL && current.status === 'approved') {
+      const exp = await client.query(`SELECT fund_transaction_id FROM expenses WHERE id = $1`, [expenseId]);
+      if (exp.rows[0]?.fund_transaction_id) {
+        await client.query(`DELETE FROM fund_transactions WHERE id = $1`, [exp.rows[0].fund_transaction_id]).catch(() => {});
+      }
+    }
+    return upd.rows[0];
+  });
+
+  const expense = await getOne(`${SELECT} WHERE x.id = $1`, [result.id]);
+
+  // Thông báo nếu VP sửa approved → pending
+  if (isVPQL && current.status === 'approved') {
+    notifyManagers('expense', 'Chi phí cần duyệt lại',
+      `${expense.name} — ${Number(expense.amount).toLocaleString('vi-VN')} đ (sửa bởi ${expense.approvedBy || 'N/A'})`);
+  }
+
   ok(res, numerify(expense));
 }));
 
-// DELETE /api/expenses/:id (QL, VP)
-router.delete('/:id', requireRole('QL', 'VP'), asyncHandler(async (req, res) => {
-  const row = await getOne(`DELETE FROM expenses WHERE id = $1 RETURNING id, image_path`, [req.params.id]);
-  if (!row) throw notFound('Không tìm thấy chi phí');
+// DELETE /api/expenses/:id — QL/VP xóa bất kỳ, hoặc KT xóa pending của mình
+router.delete('/:id', asyncHandler(async (req, res) => {
+  const isVPQL = ['QL', 'VP'].includes(req.user.role);
+
+  // VP/QL: xóa bất kỳ. KT: chỉ xóa pending của mình
+  let condition, params;
+  if (isVPQL) {
+    condition = `WHERE id = $1`;
+    params = [req.params.id];
+  } else {
+    condition = `WHERE id = $1 AND created_by = $2 AND status = 'pending'`;
+    params = [req.params.id, req.user.userId];
+  }
+
+  const row = await getOne(`DELETE FROM expenses ${condition} RETURNING id, image_path`, params);
+  if (!row) {
+    if (isVPQL) {
+      throw notFound('Không tìm thấy chi phí');
+    } else {
+      throw badRequest('Bạn chỉ xóa được chi phí pending của mình');
+    }
+  }
   if (row.image_path) fs.unlink(path.join(UPLOAD_DIR, row.image_path), () => {});
   ok(res, { id: row.id, message: 'Đã xóa chi phí' });
 }));
