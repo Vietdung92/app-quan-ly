@@ -290,7 +290,7 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {/* Tasks Table */}
+      {/* Tasks Table / Card Layout */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {isLoading ? (
           <div className="p-8 text-center">
@@ -303,90 +303,150 @@ export default function TasksPage() {
             <p className="text-gray-600">Không tìm thấy công việc nào</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
-                    Tiêu Đề
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
-                    Ưu Tiên
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
-                    Trạng Thái
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
-                    Giao Cho
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
-                    Hạn Chót
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
-                    Hành Động
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTasks.map((task) => (
-                  <tr key={task.id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <Link
-                        to={`/tasks/${task.id}`}
-                        className="font-medium text-blue-600 hover:text-blue-700"
-                      >
-                        {task.title}
-                      </Link>
-                      <p className="text-gray-600 text-sm">{task.description}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-                          task.priority
-                        )}`}
-                      >
-                        {getPriorityLabel(task.priority)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(task.status)}
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                      Tiêu Đề
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                      Ưu Tiên
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                      Trạng Thái
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                      Giao Cho
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                      Hạn Chót
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                      Hành Động
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTasks.map((task) => (
+                    <tr key={task.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <Link
+                          to={`/tasks/${task.id}`}
+                          className="font-medium text-blue-600 hover:text-blue-700"
+                        >
+                          {task.title}
+                        </Link>
+                        <p className="text-gray-600 text-sm line-clamp-2">{task.description}</p>
+                      </td>
+                      <td className="px-6 py-4">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                            task.status
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                            task.priority
                           )}`}
                         >
-                          {getStatusLabel(task.status)}
+                          {getPriorityLabel(task.priority)}
                         </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <User size={16} />
-                        {task.assignedTo}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <div
-                        className={
-                          isOverdue(task.dueDate)
-                            ? 'text-red-600 font-medium'
-                            : 'text-gray-600'
-                        }
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(task.status)}
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              task.status
+                            )}`}
+                          >
+                            {getStatusLabel(task.status)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <User size={16} />
+                          {task.assignedTo}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <div
+                          className={
+                            isOverdue(task.dueDate)
+                              ? 'text-red-600 font-medium'
+                              : 'text-gray-600'
+                          }
+                        >
+                          {new Date(task.dueDate).toLocaleDateString('vi-VN')}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button className="text-gray-400 hover:text-gray-600">
+                          <MoreVertical size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3 p-4">
+              {filteredTasks.map((task) => (
+                <Link
+                  key={task.id}
+                  to={`/tasks/${task.id}`}
+                  className="block border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                >
+                  {/* Title and Priority */}
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 text-sm">{task.title}</h3>
+                    </div>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium shrink-0 ${getPriorityColor(
+                        task.priority
+                      )}`}
+                    >
+                      {getPriorityLabel(task.priority)}
+                    </span>
+                  </div>
+
+                  {/* Description - Expandable preview */}
+                  <p className="text-gray-600 text-xs line-clamp-2 mb-3">{task.description}</p>
+
+                  {/* Status and Due Date */}
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="flex items-center gap-1.5">
+                      {getStatusIcon(task.status)}
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          task.status
+                        )}`}
                       >
-                        {new Date(task.dueDate).toLocaleDateString('vi-VN')}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <MoreVertical size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        {getStatusLabel(task.status)}
+                      </span>
+                    </div>
+                    <div
+                      className={`text-xs font-medium ${
+                        isOverdue(task.dueDate)
+                          ? 'text-red-600'
+                          : 'text-gray-600'
+                      }`}
+                    >
+                      {new Date(task.dueDate).toLocaleDateString('vi-VN')}
+                    </div>
+                  </div>
+
+                  {/* Assigned To */}
+                  <div className="flex items-center gap-1 text-xs text-gray-500 border-t pt-3">
+                    <User size={14} />
+                    <span>{task.assignedTo}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

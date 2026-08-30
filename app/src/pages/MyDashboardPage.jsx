@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import {
   Clock, CheckSquare, DollarSign, TrendingUp, Calendar,
   LogIn, LogOut, ChevronDown, ChevronUp, SlidersHorizontal,
+  Wrench, AlertCircle,
 } from 'lucide-react';
 import api from '../services/api';
 import { useAuthStore } from '../stores/authStore';
@@ -43,12 +44,30 @@ export default function MyDashboardPage() {
 
   const load = useCallback(async () => {
     try {
-      const res = await api.get('/dashboard/my', { params: range });
-      setData(res.data.data);
+      const [dashRes, perfRes] = await Promise.all([
+        api.get('/dashboard/my', { params: range }),
+        api.get('/dashboard/my-performance', { params: { month: month } })
+      ]);
+      const dashData = dashRes.data.data;
+      const perfData = perfRes.data.data;
+
+      // Merge performance data into dashboard data
+      dashData.tasks = {
+        ...dashData.tasks,
+        onTime: perfData.tasks?.onTimeCount || 0,
+        onTimeRate: perfData.tasks?.onTimeRate || 0,
+        late: (dashData.tasks?.done || 0) - (perfData.tasks?.onTimeCount || 0),
+        lateRate: perfData.tasks?.onTimeRate !== null ? 100 - (perfData.tasks?.onTimeRate || 0) : 0,
+      };
+      dashData.repairs = {
+        completed: perfData.repairs?.done || 0,
+      };
+
+      setData(dashData);
     } catch {
       toast.error('Không thể tải dữ liệu');
     }
-  }, [range.from, range.to]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [range.from, range.to, month]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { load(); }, [load]);
 
@@ -248,6 +267,71 @@ export default function MyDashboardPage() {
           </div>
         )}
       </Section>
+
+      {/* Performance & Attendance Statistics */}
+      {data.attendance && (
+        <div className="bg-white rounded-lg shadow p-4">
+          <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <TrendingUp size={18} className="text-blue-600" />
+            Thống Kê Tháng {month.split('-')[1]}
+          </h2>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+            {/* Attendance stats */}
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3">
+              <div className="text-gray-600 text-xs font-medium mb-1">Đã chấm công</div>
+              <div className="text-2xl font-bold text-blue-600">{data.attendance.days || 0}</div>
+              <div className="text-gray-500 text-xs">ngày trong tháng</div>
+            </div>
+
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-3">
+              <div className="text-gray-600 text-xs font-medium mb-1">Chưa chấm công</div>
+              <div className="text-2xl font-bold text-orange-600">
+                {Math.max(0, (new Date(month + '-01').getMonth() === new Date().getMonth() ? new Date().getDate() : new Date(new Date(month + '-01').getFullYear(), new Date(month + '-01').getMonth() + 1, 0).getDate()) - (data.attendance.days || 0))}
+              </div>
+              <div className="text-gray-500 text-xs">ngày trong tháng</div>
+            </div>
+
+            {/* Task performance */}
+            {data.tasks && (
+              <>
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3">
+                  <div className="text-gray-600 text-xs font-medium mb-1">Đúng hạn</div>
+                  <div className="text-2xl font-bold text-green-600">{data.tasks.onTimeRate !== undefined ? data.tasks.onTimeRate : 0}%</div>
+                  <div className="text-gray-500 text-xs">{data.tasks.onTime || 0} công việc</div>
+                </div>
+
+                <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-3">
+                  <div className="text-gray-600 text-xs font-medium mb-1">Trễ hạn</div>
+                  <div className="text-2xl font-bold text-red-600">{data.tasks.lateRate !== undefined ? data.tasks.lateRate : 0}%</div>
+                  <div className="text-gray-500 text-xs">{data.tasks.late || 0} công việc</div>
+                </div>
+
+                {data.repairs && (
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3">
+                    <div className="text-gray-600 text-xs font-medium mb-1 flex items-center gap-1">
+                      <Wrench size={13} />
+                      Báo hỏng hoàn thành
+                    </div>
+                    <div className="text-2xl font-bold text-purple-600">{data.repairs.completed || 0}</div>
+                    <div className="text-gray-500 text-xs">công việc</div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {data.tasks?.onTimeRate === 100 && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-start gap-2">
+              <AlertCircle size={16} className="text-green-600 mt-0.5 shrink-0" />
+              <div>
+                <div className="text-sm font-medium text-green-800">🎉 Hoàn thành tất cả đúng hạn!</div>
+                <div className="text-xs text-green-700">Bạn đủ điều kiện nhận thưởng 500.000 đ</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <Section id="leaves" icon={Calendar} title="Nghỉ Phép"
         badge={data.leaves.some((l) => l.status === 'pending') ? <span className="badge-warning !text-[10px] !px-2 !py-0.5">Có đơn chờ</span> : null}>
