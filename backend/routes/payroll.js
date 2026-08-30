@@ -24,9 +24,6 @@ const SELECT = `
 
 // GET /api/payroll/employee/:employeeId — lịch sử lương 1 nhân viên
 router.get('/employee/:employeeId', asyncHandler(async (req, res) => {
-  if (!['QL', 'VP'].includes(req.user.role) && Number(req.params.employeeId) !== req.user.employeeId) {
-    return res.status(403).json({ success: false, error: 'Bạn chỉ xem được bảng lương của mình' });
-  }
   const id = parseInt(req.params.employeeId);
   if (req.user.role === 'KT' && req.user.employeeId !== id) {
     return res.status(403).json({ success: false, error: 'Không có quyền xem lương người khác' });

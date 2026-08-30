@@ -7,7 +7,6 @@
  */
 
 const { query, getAll } = require('../config/database');
-const push = require('../services/pushService');
 
 /** Tạo notification cho danh sách user id */
 async function notifyUsers(userIds, type, title, message) {
@@ -24,8 +23,6 @@ async function notifyUsers(userIds, type, title, message) {
       `INSERT INTO notifications (user_id, type, title, message) VALUES ${values.join(', ')}`,
       params
     );
-    // Đẩy thông báo tới điện thoại (fire-and-forget)
-    push.sendToUsers([...new Set(userIds)], { title, body: message }).catch(() => {});
   } catch (err) {
     console.error('[Notify] insert failed:', err.message);
   }
