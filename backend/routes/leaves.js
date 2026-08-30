@@ -27,6 +27,9 @@ const SELECT = `
 
 // GET /api/leaves/balance/:employeeId — số ngày phép còn lại trong năm
 router.get('/balance/:employeeId', asyncHandler(async (req, res) => {
+  if (!['QL', 'VP'].includes(req.user.role) && Number(req.params.employeeId) !== req.user.employeeId) {
+    return res.status(403).json({ success: false, error: 'Bạn chỉ xem được số phép của mình' });
+  }
   const year = new Date().getFullYear();
   const used = await getAll(
     `SELECT type, COALESCE(SUM(days), 0) AS used
@@ -89,6 +92,9 @@ router.post('/request', asyncHandler(async (req, res) => {
 router.get('/:id', asyncHandler(async (req, res) => {
   const row = await getOne(`${SELECT} WHERE l.id = $1`, [req.params.id]);
   if (!row) throw notFound('Không tìm thấy đơn nghỉ phép');
+  if (!['QL', 'VP'].includes(req.user.role) && row.employeeId !== req.user.employeeId) {
+    return res.status(403).json({ success: false, error: 'Bạn chỉ xem được đơn của mình' });
+  }
   if (req.user.role === 'KT' && row.employeeId !== req.user.employeeId) {
     return res.status(403).json({ success: false, error: 'Không có quyền xem đơn của người khác' });
   }

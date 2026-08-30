@@ -18,6 +18,12 @@ const NUMBER_FIELDS = new Set([
   'deductions', 'advanceDeduction', 'netSalary', 'monthlyDeduction',
   'remainingBalance', 'balance', 'days', 'totalProjects', 'totalExpenses',
   'totalEmployees', 'pendingTasks', 'monthlyIncome', 'monthlyExpenses',
+  'thu', 'chi', 'rentAmount', 'deposit', 'amountDue', 'amountPaid',
+  'payAmount', 'totalDue', 'totalPaid',
+  'ownerRent', 'ownerDeposit', 'buildingFee', 'companyFee', 'grossMargin',
+  'ownerTotalDue', 'ownerTotalPaid', 'area',
+  'total', 'expired', 'expiring', 'daysLeft',
+  'declaredRent', 'monthlyTax', 'paidMonths', 'totalMonths', 'overdueMonths', 'paidTotal', 'monthlyTaxTotal', 'overdue',
 ]);
 
 function numerify(row) {

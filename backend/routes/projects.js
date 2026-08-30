@@ -50,17 +50,36 @@ router.get('/:id/budget', asyncHandler(async (req, res) => {
   ok(res, { budget: Number(row.budget), spent: Number(row.spent), remaining: Number(row.remaining) });
 }));
 
-// POST /api/projects (QL, VP)
-router.post('/', requireRole('QL', 'VP'), asyncHandler(async (req, res) => {
-  const { name, description, status, budget, startDate, endDate, managerId, team } = req.body;
+// POST /api/projects — QL/VP đầy đủ; KT tạo nhanh (chỉ tên) để gắn chi phí/công việc
+router.post('/', asyncHandler(async (req, res) => {
+  const isManager = ['QL', 'VP'].includes(req.user.role);
+  const { description, status, budget, startDate, endDate, managerId, team } = isManager ? req.body : {};
+  const name = String(req.body.name || '').trim();
   if (!name) throw badRequest('Tên dự án là bắt buộc');
 
+  const dup = await getOne(`SELECT id FROM projects WHERE LOWER(name) = LOWER($1)`, [name]);
+  if (dup) throw badRequest(`Dự án "${name}" đã tồn tại`);
+
+  // Chuẩn hóa: chuỗi rỗng từ form → null; người quản lý mặc định là người tạo
+  const mgr = managerId ? parseInt(managerId, 10) : req.user.employeeId;
+
   const projectId = await transaction(async (client) => {
+    // Đồng bộ: tạo đối tượng Quỹ trùng tên trong nhóm "Dự án"
+    const og = await client.query(`SELECT id FROM fund_groups WHERE name = 'Dự án'`);
+    let fundObjectId = null;
+    if (og.rows.length) {
+      const oRes = await client.query(
+        `INSERT INTO fund_objects (group_id, name, status) VALUES ($1, $2, 'Đang hoạt động')
+         ON CONFLICT (group_id, name) DO UPDATE SET status = fund_objects.status RETURNING id`,
+        [og.rows[0].id, name]
+      );
+      fundObjectId = oRes.rows[0].id;
+    }
     const result = await client.query(
-      `INSERT INTO projects (name, description, status, budget, start_date, end_date, manager_id, created_by)
-       VALUES ($1, $2, COALESCE($3, 'pending'), COALESCE($4, 0), $5, $6, COALESCE($7, $8), $9)
+      `INSERT INTO projects (name, description, status, budget, start_date, end_date, manager_id, created_by, fund_object_id)
+       VALUES ($1, $2, COALESCE($3, 'pending'), COALESCE($4, 0), $5, $6, $7, $8, $9)
        RETURNING id`,
-      [name, description, status, budget, startDate, endDate, managerId, req.user.employeeId, req.user.userId]
+      [name, description || null, status || null, budget || null, startDate || null, endDate || null, mgr, req.user.userId, fundObjectId]
     );
     const id = result.rows[0].id;
     if (Array.isArray(team)) {
@@ -80,7 +99,22 @@ router.post('/', requireRole('QL', 'VP'), asyncHandler(async (req, res) => {
 
 // PUT /api/projects/:id (QL, VP)
 router.put('/:id', requireRole('QL', 'VP'), asyncHandler(async (req, res) => {
-  const { name, description, status, budget, spent, startDate, endDate, managerId } = req.body;
+  let { name, description, status, budget, spent, startDate, endDate, managerId } = req.body;
+  // Chuỗi rỗng từ form → null để COALESCE giữ giá trị cũ
+  budget = budget === '' ? null : budget;
+  spent = spent === '' ? null : spent;
+  startDate = startDate || null;
+  endDate = endDate || null;
+  managerId = managerId ? parseInt(managerId, 10) : null;
+  // Đổi tên → đồng bộ đối tượng Quỹ (lịch sử giao dịch giữ nguyên vì nối bằng id)
+  if (name) {
+    const dup = await getOne(`SELECT id FROM projects WHERE LOWER(name) = LOWER($1) AND id != $2`, [name, req.params.id]);
+    if (dup) throw badRequest(`Dự án "${name}" đã tồn tại`);
+    const cur = await getOne(`SELECT fund_object_id FROM projects WHERE id = $1`, [req.params.id]);
+    if (cur?.fund_object_id) {
+      await getOne(`UPDATE fund_objects SET name = $1 WHERE id = $2 RETURNING id`, [name, cur.fund_object_id]).catch(() => {});
+    }
+  }
   const row = await getOne(
     `UPDATE projects SET
        name = COALESCE($1, name),
