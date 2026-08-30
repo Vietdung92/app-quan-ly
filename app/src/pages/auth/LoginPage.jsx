@@ -111,12 +111,6 @@ export default function LoginPage() {
         </Link>
       </p>
 
-      {/* Demo info */}
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <p className="text-xs text-blue-800">
-          <strong>Demo credentials:</strong> quanly@hcare.com / hcare123
-        </p>
-      </div>
     </div>
   );
 }

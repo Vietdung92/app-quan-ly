@@ -16,9 +16,12 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import api from '../../services/api';
+import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
 
 export default function ProjectsPage() {
+  const { user } = useAuthStore();
+  const isKT = user?.role === 'KT';
   const [projects, setProjects] = useState([]);
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -197,6 +200,16 @@ export default function ProjectsPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                     Tiến Độ
                   </th>
+                  {!isKT && (
+                    <>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                        Ngân Sách
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
+                        Tiến Độ
+                      </th>
+                    </>
+                  )}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase">
                     Quản Lý
                   </th>
@@ -231,24 +244,28 @@ export default function ProjectsPage() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm">
-                        {(project.budget / 1000000).toFixed(1)}M đ
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="w-24">
-                          <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all ${
-                                progress > 90 ? 'bg-red-600' : 'bg-blue-600'
-                              }`}
-                              style={{ width: `${Math.min(progress, 100)}%` }}
-                            ></div>
-                          </div>
-                          <p className="text-xs text-gray-600 mt-1">
-                            {progress.toFixed(0)}%
-                          </p>
-                        </div>
-                      </td>
+                      {!isKT && (
+                        <>
+                          <td className="px-6 py-4 text-sm">
+                            {(project.budget / 1000000).toFixed(1)}M đ
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="w-24">
+                              <div className="bg-gray-200 rounded-full h-2 overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all ${
+                                    progress > 90 ? 'bg-red-600' : 'bg-blue-600'
+                                  }`}
+                                  style={{ width: `${Math.min(progress, 100)}%` }}
+                                ></div>
+                              </div>
+                              <p className="text-xs text-gray-600 mt-1">
+                                {progress.toFixed(0)}%
+                              </p>
+                            </div>
+                          </td>
+                        </>
+                      )}
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {project.manager}
                       </td>
