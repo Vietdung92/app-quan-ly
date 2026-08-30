@@ -18,6 +18,17 @@ const SELECT = `
   JOIN employees e ON e.id = a.employee_id
 `;
 
+// GET /api/attendance/my-history?month=YYYY-MM — xem lịch sử chấm công của chính mình (KT)
+router.get('/my-history', asyncHandler(async (req, res) => {
+  const { month } = req.query;
+  const conditions = ['a.employee_id = $1'];
+  const params = [req.user.employeeId];
+  if (month) { params.push(month); conditions.push(`to_char(a.date, 'YYYY-MM') = $${params.length}`); }
+  const where = `WHERE ${conditions.join(' AND ')}`;
+  const rows = await getAll(`${SELECT} ${where} ORDER BY a.date DESC`, params);
+  ok(res, rows);
+}));
+
 // GET /api/attendance?month=YYYY-MM&employeeId=
 router.get('/', requireRole('QL', 'VP'), asyncHandler(async (req, res) => {
   const { month, employeeId } = req.query;

@@ -86,15 +86,28 @@ router.delete('/:id', requireAdmin, asyncHandler(async (req, res) => {
   ok(res, { id: row.id, message: 'Đã chuyển nhân viên sang trạng thái nghỉ việc' });
 }));
 
-// PATCH /api/employees/:id/status (QL)
+// PATCH /api/employees/:id/status (QL) — tự động khóa/mở khóa đăng nhập khi đổi status
 router.patch('/:id/status', requireAdmin, asyncHandler(async (req, res) => {
   const { status } = req.body;
   if (!status) throw badRequest('Thiếu trạng thái');
+  const employee = await getOne(`SELECT employee_id FROM users WHERE employee_id = $1`, [req.params.id]);
+  if (!employee && ['inactive', 'active'].includes(status)) {
+    throw notFound('Không tìm thấy tài khoản đăng nhập của nhân viên');
+  }
+
   const row = await getOne(
     `UPDATE employees SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING id`,
     [status, req.params.id]
   );
   if (!row) throw notFound('Không tìm thấy nhân viên');
+
+  // Tự động khóa/mở khóa tài khoản đăng nhập
+  if (status === 'inactive' && employee) {
+    await getOne(`UPDATE users SET is_active = FALSE WHERE employee_id = $1`, [req.params.id]);
+  } else if (status === 'active' && employee) {
+    await getOne(`UPDATE users SET is_active = TRUE WHERE employee_id = $1`, [req.params.id]);
+  }
+
   ok(res, { id: row.id, status });
 }));
 
@@ -108,6 +121,18 @@ router.patch('/:id/salary', requireAdmin, asyncHandler(async (req, res) => {
   );
   if (!row) throw notFound('Không tìm thấy nhân viên');
   ok(res, numerify(row));
+}));
+
+// PATCH /api/employees/:id/lock-account (QL) — khóa/mở khóa đăng nhập độc lập
+router.patch('/:id/lock-account', requireAdmin, asyncHandler(async (req, res) => {
+  const { locked } = req.body;
+  if (locked === undefined) throw badRequest('Thiếu trạng thái khóa');
+  const row = await getOne(
+    `UPDATE users SET is_active = $1 WHERE employee_id = $2 RETURNING id`,
+    [!locked, req.params.id]
+  );
+  if (!row) throw notFound('Không tìm thấy tài khoản đăng nhập của nhân viên');
+  ok(res, { id: req.params.id, locked: locked ? true : false });
 }));
 
 module.exports = router;

@@ -250,6 +250,58 @@ router.get('/workbench', requireRole('QL', 'VP'), asyncHandler(async (req, res) 
   ok(res, out);
 }));
 
+// GET /api/dashboard/my-performance?month=YYYY-MM (KT) — hiệu suất & thưởng của chính mình
+router.get('/my-performance', asyncHandler(async (req, res) => {
+  const month = req.query.month || new Date().toISOString().slice(0, 7);
+  const empId = req.user.employeeId;
+
+  const perf = await getOne(`
+    SELECT
+      (SELECT COUNT(*) FROM tasks t WHERE t.assigned_to = $1
+         AND to_char(t.created_at, 'YYYY-MM') <= $2
+         AND (t.status != 'completed' OR to_char(t.updated_at, 'YYYY-MM') = $2)) AS "activeInMonth",
+      (SELECT COUNT(*) FROM tasks t WHERE t.assigned_to = $1
+         AND t.status = 'completed' AND to_char(t.updated_at, 'YYYY-MM') = $2) AS "done",
+      (SELECT COUNT(*) FROM tasks t WHERE t.assigned_to = $1
+         AND t.status != 'completed' AND t.due_date < CURRENT_DATE) AS "overdue",
+      (SELECT COUNT(*) FROM tasks t WHERE t.assigned_to = $1
+         AND t.status = 'completed' AND to_char(t.updated_at, 'YYYY-MM') = $2
+         AND (t.due_date IS NULL OR t.updated_at::date <= t.due_date)) AS "onTime",
+      (SELECT COUNT(*) FROM repair_requests r WHERE r.assigned_to = $1
+         AND r.status = 'done' AND to_char(r.resolved_at, 'YYYY-MM') = $2) AS "repairsDone"
+  `, [empId, month]);
+
+  const done = Number(perf.done) || 0;
+  const onTime = Number(perf.onTime) || 0;
+  const repairsDone = Number(perf.repairsDone) || 0;
+  const onTimeRate = done > 0 ? Math.round((onTime / done) * 100) : null;
+
+  // Kiểm tra đạt thưởng 500k (100% đúng hạn)
+  const bonusOnTime = onTimeRate === 100 ? 500000 : 0;
+
+  // Kiểm tra đạt thưởng 1tr (nhiều báo hỏng nhất tháng)
+  // TODO: Hiện chưa tính xếp hạng, để frontend/QL điều chỉnh sau
+  const bonusRepairs = 0;
+
+  ok(res, {
+    month,
+    tasks: {
+      done,
+      overdue: Number(perf.overdue) || 0,
+      onTimeCount: onTime,
+      onTimeRate,
+    },
+    repairs: {
+      done: repairsDone,
+    },
+    bonuses: {
+      onTime: bonusOnTime,
+      repairs: bonusRepairs,
+    },
+    totalBonus: bonusOnTime + bonusRepairs,
+  });
+}));
+
 // GET /api/dashboard/performance?month=YYYY-MM (QL) — hiệu suất từng nhân viên
 router.get('/performance', requireRole('QL'), asyncHandler(async (req, res) => {
   const month = req.query.month || new Date().toISOString().slice(0, 7);

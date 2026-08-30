@@ -84,6 +84,59 @@ router.post('/generate', requireRole('QL'), asyncHandler(async (req, res) => {
   ok(res, { month, generated: generated.length, message: `Đã tạo ${generated.length} bảng lương tháng ${month}` });
 }));
 
+// GET /api/payroll/my-detail?month=YYYY-MM — chi tiết thành phần lương cho KT
+router.get('/my-detail', asyncHandler(async (req, res) => {
+  const { month } = req.query;
+  if (!month) throw badRequest('Thiếu tháng cần xem');
+  const payroll = await getOne(`${SELECT} WHERE p.employee_id = $1 AND p.month = $2`, [req.user.employeeId, month]);
+  if (!payroll) throw notFound('Không tìm thấy bảng lương tháng này');
+
+  // Tính chi tiết thành phần
+  const expenses = await getOne(
+    `SELECT COALESCE(SUM(CASE WHEN need_reimburse = TRUE AND reimbursed_at IS NULL THEN amount ELSE 0 END), 0) AS unreimbursed
+     FROM expenses WHERE created_by = $1 AND to_char(created_at, 'YYYY-MM') = $2`,
+    [req.user.employeeId, month]
+  );
+
+  const leaves = await getOne(
+    `SELECT COALESCE(SUM(EXTRACT(DAY FROM date_to - date_from + 1)), 0) AS unpaidDays
+     FROM leaves WHERE employee_id = $1 AND leave_type = 'unpaid'
+       AND to_char(date_from, 'YYYY-MM') <= $2 AND to_char(date_to, 'YYYY-MM') >= $2`,
+    [req.user.employeeId, month]
+  );
+
+  const advances = await getOne(
+    `SELECT COALESCE(SUM(monthly_deduction), 0) AS totalDeduction
+     FROM advance_salary WHERE employee_id = $1 AND to_char(approved_date, 'YYYY-MM') <= $2
+       AND status IN ('approved', 'completed') AND remaining_balance > 0`,
+    [req.user.employeeId, month]
+  );
+
+  // Tính toán lương
+  const baseSalary = Number(payroll.baseSalary) || 0;
+  const advanceDeduction = Number(payroll.advanceDeduction) || 0;
+  const unreimbursedAmount = Number(expenses.unreimbursed) || 0;
+  const unpaidDays = Number(leaves.unpaidDays) || 0;
+  const leaveDeduction = unpaidDays * (baseSalary / 26); // Giả định 26 ngày/tháng
+
+  // TODO: Bonus sẽ được tính khi hoàn thành hiệu suất (mục 6)
+  const bonus = 0;
+
+  const netSalary = baseSalary - advanceDeduction - unreimbursedAmount - leaveDeduction + bonus;
+
+  ok(res, {
+    month,
+    baseSalary,
+    deductions: {
+      advance: advanceDeduction,
+      unreimbursed: unreimbursedAmount,
+      unpaidLeave: { days: unpaidDays, amount: leaveDeduction },
+    },
+    bonuses: bonus,
+    netSalary,
+  });
+}));
+
 // GET /api/payroll?month=
 router.get('/', asyncHandler(async (req, res) => {
   const { month } = req.query;

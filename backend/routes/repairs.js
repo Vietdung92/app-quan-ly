@@ -47,11 +47,19 @@ router.get('/', asyncHandler(async (req, res) => {
 
 // PUT /api/repairs/:id — cập nhật trạng thái / giao việc / ghi chú (QL, VP, KT)
 router.put('/:id', asyncHandler(async (req, res) => {
-  const { status, assignedTo, staffNotes } = req.body;
+  const { status, assignedTo, staffNotes, acceptRepair } = req.body;
   const STATUSES = ['new', 'received', 'in_progress', 'done', 'cancelled'];
   if (status && !STATUSES.includes(status)) throw badRequest('Trạng thái không hợp lệ');
-  // KT chỉ được cập nhật trạng thái + ghi chú, không tự giao việc
+
   const canAssign = ['QL', 'VP'].includes(req.user.role);
+  const repair = await getOne(`${SELECT} WHERE r.id = $1`, [req.params.id]);
+  if (!repair) throw notFound('Không tìm thấy yêu cầu báo hỏng');
+
+  // KT tự nhận việc: acceptRepair = true + repair chưa ai nhận (assigned_to = null)
+  if (req.user.role === 'KT' && acceptRepair === true) {
+    if (repair.assignedTo !== null) throw badRequest('Công việc này đã được giao cho người khác');
+    if (repair.status !== 'new') throw badRequest('Chỉ có thể nhận việc ở trạng thái mới');
+  }
 
   const sets = ['updated_at = NOW()'];
   const params = [];
@@ -62,6 +70,10 @@ router.put('/:id', asyncHandler(async (req, res) => {
   if (canAssign && 'assignedTo' in req.body) {
     params.push(assignedTo ? parseInt(assignedTo, 10) : null);
     sets.push(`assigned_to = $${params.length}`);
+  } else if (req.user.role === 'KT' && acceptRepair === true) {
+    // KT tự nhận: gán cho chính mình + đổi status thành 'received'
+    params.push(req.user.employeeId); sets.push(`assigned_to = $${params.length}`);
+    params.push('received'); sets.push(`status = $${params.length}`);
   }
   if ('staffNotes' in req.body) {
     params.push(staffNotes || null); sets.push(`staff_notes = $${params.length}`);
@@ -73,14 +85,16 @@ router.put('/:id', asyncHandler(async (req, res) => {
     params
   );
   if (!row) throw notFound('Không tìm thấy yêu cầu báo hỏng');
-  const repair = await getOne(`${SELECT} WHERE r.id = $1`, [row.id]);
+  const updatedRepair = await getOne(`${SELECT} WHERE r.id = $1`, [row.id]);
 
   if (status === 'done') {
-    telegram.sendMessage(`✅ <b>Đã xử lý xong báo hỏng</b>\nCăn: <b>${repair.apartment}</b>\nNội dung: ${repair.description.slice(0, 200)}`);
-  } else if (canAssign && assignedTo && repair.assignedName) {
-    telegram.sendMessage(`🔧 <b>Giao việc sửa chữa</b>\nCăn: <b>${repair.apartment}</b>\nGiao cho: ${repair.assignedName}\nNội dung: ${repair.description.slice(0, 200)}`);
+    telegram.sendMessage(`✅ <b>Đã xử lý xong báo hỏng</b>\nCăn: <b>${updatedRepair.apartment}</b>\nNội dung: ${updatedRepair.description.slice(0, 200)}`);
+  } else if (canAssign && assignedTo && updatedRepair.assignedName) {
+    telegram.sendMessage(`🔧 <b>Giao việc sửa chữa</b>\nCăn: <b>${updatedRepair.apartment}</b>\nGiao cho: ${updatedRepair.assignedName}\nNội dung: ${updatedRepair.description.slice(0, 200)}`);
+  } else if (req.user.role === 'KT' && acceptRepair === true && updatedRepair.assignedName) {
+    telegram.sendMessage(`🔧 <b>Kỹ thuật nhận việc sửa chữa</b>\nCăn: <b>${updatedRepair.apartment}</b>\nNhân viên: ${updatedRepair.assignedName}\nNội dung: ${updatedRepair.description.slice(0, 200)}`);
   }
-  ok(res, repair);
+  ok(res, updatedRepair);
 }));
 
 // ===== Quản lý tài khoản khách thuê =====

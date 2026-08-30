@@ -23,6 +23,19 @@ const SELECT = `
   LEFT JOIN employees m ON m.id = p.manager_id
 `;
 
+// Helper: strip tiền khi KT truy cập
+function stripBudgetForKT(data, isKT) {
+  if (!isKT) return data;
+  if (Array.isArray(data)) {
+    return data.map(item => {
+      const { budget, spent, ...rest } = item;
+      return rest;
+    });
+  }
+  const { budget, spent, ...rest } = data;
+  return rest;
+}
+
 // GET /api/projects?status=
 router.get('/', asyncHandler(async (req, res) => {
   const { status } = req.query;
@@ -30,18 +43,19 @@ router.get('/', asyncHandler(async (req, res) => {
   let where = '';
   if (status) { params.push(status); where = `WHERE p.status = $1`; }
   const rows = await getAll(`${SELECT} ${where} ORDER BY p.id DESC`, params);
-  ok(res, numerify(rows));
+  ok(res, numerify(stripBudgetForKT(rows, req.user.role === 'KT')));
 }));
 
 // GET /api/projects/:id
 router.get('/:id', asyncHandler(async (req, res) => {
   const row = await getOne(`${SELECT} WHERE p.id = $1`, [req.params.id]);
   if (!row) throw notFound('Không tìm thấy dự án');
-  ok(res, numerify(row));
+  ok(res, numerify(stripBudgetForKT(row, req.user.role === 'KT')));
 }));
 
 // GET /api/projects/:id/budget
 router.get('/:id/budget', asyncHandler(async (req, res) => {
+  if (req.user.role === 'KT') throw badRequest('Kỹ thuật không có quyền xem ngân sách dự án');
   const row = await getOne(
     `SELECT budget, spent, (budget - spent) AS remaining FROM projects WHERE id = $1`,
     [req.params.id]
